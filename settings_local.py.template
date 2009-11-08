@@ -29,6 +29,10 @@ DATABASE_PORT = ''             # Set to empty string for default. Not used with 
 # system time zone.
 TIME_ZONE = 'America/New_York'
 
+# Absolute path to the directory that holds media.
+# Example: "/home/media/media.lawrence.com/"
+MEDIA_ROOT = ''
+
 # Make this unique, and don't share it with anybody.
 SECRET_KEY = 'Replace this text with a random string of ASCII.'
 
