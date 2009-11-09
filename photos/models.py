@@ -65,4 +65,7 @@ class Photo(models.Model):
         if len(self.description) > 0:
             repr += ": " + self.description
         return repr
-
+    
+    def save(self, force_insert=False, force_update=False):
+        # TODO: Write updated Exif & IPTC back to the image.
+        super(Photo, self).save(force_insert, force_update)
