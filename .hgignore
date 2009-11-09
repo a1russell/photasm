@@ -7,4 +7,5 @@ syntax: glob
 settings_local.py
 .project
 .pydevproject
+.checkstyle
 
