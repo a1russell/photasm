@@ -3,5 +3,8 @@ syntax: glob
 *.pyc
 *.db
 *~
+*.swp
 settings_local.py
+.project
+.pydevproject
 
