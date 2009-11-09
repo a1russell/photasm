@@ -61,7 +61,7 @@ class Photo(models.Model):
     album = models.ForeignKey(Album)
 
     def __unicode__(self):
-        repr = owner.username + "'s pic #" + self.id
+        repr = self.owner.username + "'s pic #" + self.id
         if len(self.description) > 0:
             repr += ": " + self.description
         return repr
