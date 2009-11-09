@@ -20,38 +20,49 @@ class PhotoTag(models.Model):
 class Photo(models.Model):
     owner = models.ForeignKey(User)
 
+    data = models.ImageField(upload_to="photos/%Y/%m/%d",
+                             height_field="image_height",
+                             width_field="image_width")
+
     # Exif ImageDescription, IPTC Caption 
-    _description = models.CharField(max_length=2000)
+    description = models.CharField(blank=True, max_length=2000)
 
     # Exif Artist, IPTC Byline
-    _artist = models.CharField(max_length=32)
+    artist = models.CharField(blank=True, max_length=32)
 
     # IPTC CountryName
-    _country = models.CharField(max_length=64)
+    country = models.CharField("country name", blank=True, max_length=64)
 
     # IPTC ProvinceState
-    _state = models.CharField(max_length=32)
+    province_state = models.CharField("province/state", blank=True,
+                                      max_length=32)
 
     # IPTC City
-    _city = models.CharField(max_length=32)
+    city = models.CharField(blank=True, max_length=32)
 
     # IPTC SubLocation
-    _location = models.CharField(max_length=32)
+    location = models.CharField(blank=True, max_length=32,
+                                help_text="location within a city")
 
     # Exif DateTimeOriginal, IPTC DateCreated
-    _date_created = models.DateField()
+    date_created = models.DateField(null=True, blank=True,
+                                    help_text="date original image data "\
+                                              "was generated")
 
     # IPTC Keywords
-    _keywords = models.ManyToManyField(PhotoTag)
+    keywords = models.ManyToManyField(PhotoTag)
 
     # Exif ImageWidth
-    _image_width = models.IntegerField()
+    image_width = models.IntegerField()
 
     # Exif ImageHeight
-    _image_height = models.IntegerField()
+    image_height = models.IntegerField()
 
     album = models.ForeignKey(Album)
 
     def __unicode__(self):
-        return self.description
+        repr = owner.username + "'s pic #" + self.id
+        if len(self.description) > 0:
+            repr += ": " + self.description
+        return repr
 
