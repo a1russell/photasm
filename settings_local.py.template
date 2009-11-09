@@ -29,8 +29,14 @@ DATABASE_PORT = ''             # Set to empty string for default. Not used with 
 # system time zone.
 TIME_ZONE = 'America/New_York'
 
-# Absolute path to the directory that holds media.
+# Absolute path to the filesystem root for your media.
 # Example: "/home/media/media.lawrence.com/"
+# Be careful not to use the same path as your ADMIN_MEDIA_PREFIX
+# (which defaults to /media/) as this will overwrite your URLconf entry.
+STATIC_DOC_ROOT = ''
+
+# Absolute path to the directory that holds uploaded media.
+# Example: "/home/media/uploaded-media.lawrence.com/"
 MEDIA_ROOT = ''
 
 # Make this unique, and don't share it with anybody.
