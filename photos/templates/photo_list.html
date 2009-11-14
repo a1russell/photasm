@@ -1,0 +1,9 @@
+{% if object_list %}
+    <ul>
+    {% for photo in object_list %}
+        <li>{{ photo.artist }} - {{ photo.description }}</li>
+    {% endfor %}
+    </ul>
+{% else %}
+    <p>No photos are available.</p>
+{% endif %}
