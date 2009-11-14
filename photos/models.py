@@ -50,7 +50,7 @@ class Photo(models.Model):
                                               "was generated")
 
     # IPTC Keywords
-    keywords = models.ManyToManyField(PhotoTag)
+    keywords = models.ManyToManyField(PhotoTag, null=True)
 
     # Exif ImageWidth
     image_width = models.IntegerField()
@@ -61,7 +61,7 @@ class Photo(models.Model):
     album = models.ForeignKey(Album)
 
     def __unicode__(self):
-        repr = self.owner.username + "'s pic #" + self.id
+        repr = "%s's pic #%d" % (self.owner.username, self.id)
         if len(self.description) > 0:
             repr += ": " + self.description
         return repr
