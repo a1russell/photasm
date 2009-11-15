@@ -1,3 +1,7 @@
+{% extends "base.html" %}
+
+{% block content %}
+
 <img src="{{ object.data.url }}" alt="{{ object.descrpiton }}" />
 
 {% if object.description %}
@@ -51,3 +55,5 @@
 		{% endfor %}
 	{% endif %}
 </dl>
+
+{% endblock %}

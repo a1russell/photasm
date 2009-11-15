@@ -1,3 +1,7 @@
+{% extends "base.html" %}
+
+{% block content %}
+
 {% if object_list %}
     <ul>
     {% for photo in object_list %}
@@ -7,3 +11,5 @@
 {% else %}
     <p>No photos are available.</p>
 {% endif %}
+
+{% endblock %}
