@@ -79,5 +79,8 @@ INSTALLED_APPS = (
     'photosharing.photos',
 )
 
-from settings_local import *
-
+try:
+    from settings_local import *
+except ImportError as importError:
+    print "You haven't yet prepared your project for version control. "\
+          "Please follow the instructions in settings_local.py.template."
