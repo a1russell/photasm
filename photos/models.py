@@ -50,7 +50,7 @@ class Photo(models.Model):
                                               "was generated")
 
     # IPTC Keywords
-    keywords = models.ManyToManyField(PhotoTag, null=True)
+    keywords = models.ManyToManyField(PhotoTag, null=True, blank=True)
 
     # Exif ImageWidth
     image_width = models.IntegerField()
