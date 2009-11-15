@@ -12,9 +12,9 @@ urlpatterns = patterns(
 urlpatterns += patterns(
     'django.views.generic',
     
-    (r'^$', 'list_detail.object_list',
-     dict(info_dict, template_name="photo_list.html")),
+    url(r'^$', 'list_detail.object_list',
+        dict(info_dict, template_name="photo_list.html"), "photo_list"),
     
-    (r'^(?P<object_id>\d+)/$', 'list_detail.object_detail',
-     dict(info_dict, template_name="photo_detail.html")),
+    url(r'^(?P<object_id>\d+)/$', 'list_detail.object_detail',
+        dict(info_dict, template_name="photo_detail.html"), "photo_detail"),
 )
