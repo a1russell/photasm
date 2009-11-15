@@ -1,7 +1,7 @@
 {% if object_list %}
     <ul>
     {% for photo in object_list %}
-        <li>{{ photo.artist }} - {{ photo.description }}</li>
+        <li><a href="{% url photo_detail photo.id %}" />{{ photo }}</a></li>
     {% endfor %}
     </ul>
 {% else %}
