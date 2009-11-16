@@ -1,5 +1,9 @@
 {% extends "base.html" %}
 
+{% block title %}
+Photo Detail
+{% endblock %}
+
 {% block content %}
 
 <img src="{{ object.data.url }}" alt="{{ object.descrpiton }}" />
