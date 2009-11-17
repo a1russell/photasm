@@ -47,6 +47,10 @@ MEDIA_URL = '/site_media/'
 # Examples: "http://foo.com/media/", "/media/".
 ADMIN_MEDIA_PREFIX = '/media/'
 
+# The URL where requests are redirected after login when the
+# contrib.auth.login view gets no next parameter.
+LOGIN_REDIRECT_URL = ''
+
 # Make this unique, and don't share it with anybody.
 SECRET_KEY = "Adam's Site -- CHANGE THIS in settings_local.py"
 
