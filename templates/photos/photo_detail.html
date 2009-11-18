@@ -6,11 +6,13 @@ Photo Detail
 
 {% block content %}
 
-<img src="{{ object.data.url }}" alt="{{ object.descrpiton }}" />
+<figure>
+	<dd><img src="{{ object.data.url }}" alt="{{ object.descrpiton }}" /></dd>
 
-{% if object.description %}
-	<p>{{ object.description }}</p>
-{% endif %}
+	{% if object.description %}
+		<dt>{{ object.description }}</dt>
+	{% endif %}
+</figure>
 
 <dl>
 	<dt>Owner</dt>
