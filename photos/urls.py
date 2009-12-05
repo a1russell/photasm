@@ -1,4 +1,5 @@
 from django.conf.urls.defaults import *
+
 from photosharing.photos.models import Photo
 
 info_dict = {
@@ -15,6 +16,10 @@ urlpatterns = patterns(
     url(r'^(?P<object_id>\d+)/$', 'photo_detail',
         dict(info_dict, template_name="photos/photo_detail.html"),
         "photo_detail"),
+    
+    url(r'^upload/$', 'photo_upload'),
+    
+    url(r'^(?P<object_id>\d+)/edit/$', 'photo_edit'),
 )
 
 urlpatterns += patterns(

@@ -1,5 +1,6 @@
-from django.db import models
 from django.contrib.auth.models import User
+from django.db import models
+from django.forms import ModelForm
 
 
 class Album(models.Model):
@@ -53,10 +54,10 @@ class Photo(models.Model):
     keywords = models.ManyToManyField(PhotoTag, null=True, blank=True)
 
     # Exif ImageWidth
-    image_width = models.IntegerField()
+    image_width = models.IntegerField(editable=False)
 
     # Exif ImageHeight
-    image_height = models.IntegerField()
+    image_height = models.IntegerField(editable=False)
 
     album = models.ForeignKey(Album)
 
@@ -66,6 +67,22 @@ class Photo(models.Model):
             repr += ": " + self.description
         return repr
     
-    def save(self, force_insert=False, force_update=False):
+    def sync_metadata_to_file(self):
         # TODO: Write updated Exif & IPTC back to the image.
-        super(Photo, self).save(force_insert, force_update)
+        pass
+    
+    def sync_metadata_from_file(self):
+        # TODO: Retrieve properties from Exif & IPTC.
+        pass
+
+
+class PhotoUploadForm(ModelForm):
+    class Meta:
+        model = Photo
+        fields = ('owner', 'album', 'data',)
+
+
+class PhotoEditForm(ModelForm):
+    class Meta:
+        model = Photo
+        exclude = ('data',)

@@ -5,6 +5,14 @@
 {% endblock %}
 
 {% block content %}
+	{% if messages %}
+		<ul>
+			{% for message in messages %}
+				<li>{{ message }}</li>
+			{% endfor %}
+		</ul>
+	{% endif %}
+	
 	<figure>
 		<dd>
 			<img src="{{ object.data.url }}" alt="{{ object.descrpiton }}" />
