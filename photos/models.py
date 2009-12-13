@@ -2,6 +2,8 @@ from django.contrib.auth.models import User
 from django.db import models
 from django.forms import ModelForm
 
+from photosharing.photos.image_metadata import *
+
 
 class Album(models.Model):
     owner = models.ForeignKey(User)
@@ -46,6 +48,7 @@ class Photo(models.Model):
                                 help_text="location within a city")
 
     # Exif DateTimeOriginal, IPTC DateCreated
+    # date photo was taken
     date_created = models.DateField(null=True, blank=True,
                                     help_text="date original image data "\
                                               "was generated")
@@ -74,6 +77,49 @@ class Photo(models.Model):
     def sync_metadata_from_file(self):
         # TODO: Retrieve properties from Exif & IPTC.
         pass
+    
+    def definition_metadata_is_in_sync(self):
+        return value_synced_with_exif_and_iptc(
+            self.description, self.data.path,
+            'Exif.Image.ImageDescription', 'Iptc.Application2.Caption')
+    
+    def artist_metadata_is_in_sync(self):
+        return value_synced_with_exif_and_iptc(self.artist, self.data.path,
+            'Exif.Image.Artist', 'Iptc.Application2.Byline')
+    
+    def country_metadata_is_in_sync(self):
+        return value_synced_with_iptc(self.country, self.data.path,
+            'Iptc.Application2.CountryName')
+    
+    def province_state_metadata_is_in_sync(self):
+        return value_synced_with_iptc(self.province_state, self.data.path,
+            'Iptc.Application2.ProvinceState')
+    
+    def city_metadata_is_in_sync(self):
+        return value_synced_with_iptc(self.city, self.data.path,
+            'Iptc.Application2.City')
+    
+    def location_metadata_is_in_sync(self):
+        return value_synced_with_iptc(self.location, self.data.path,
+            'Iptc.Application2.SubLocation')
+    
+    def date_created_metadata_is_in_sync(self):
+        return value_synced_with_exif_and_iptc(
+            self.date_created, self.data.path,
+            'Exif.Image.DateTimeOriginal', 'Iptc.Application2.DateCreated')
+    
+    def keywords_metadata_is_in_sync(self):
+        # TODO: Make sure only keyword order doesn't force sync.
+        return value_synced_with_iptc(self.keywords, self.data.path,
+            'Iptc.Application2.Keywords')
+    
+    def image_width_metadata_is_in_sync(self):
+        return value_synced_with_exif(self.image_width, self.data.path,
+            'Exif.Image.ImageWidth')
+    
+    def image_height_metadata_is_in_sync(self):
+        return value_synced_with_exif(self.image_height, self.data.path,
+            'Exif.Image.ImageHeight')
 
 
 class PhotoUploadForm(ModelForm):
