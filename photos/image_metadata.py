@@ -1,7 +1,7 @@
 import pyexiv2
 
 
-def _value_synced_with_metadata(value, path, metadata_key, keys_method):
+def _metadata_value_synced_with_file(value, path, metadata_key, keys_method):
     image_metadata = pyexiv2.Image(path)
     image_metadata.readMetadata()
     metadata_value = None
@@ -31,13 +31,13 @@ def _value_synced_with_metadata(value, path, metadata_key, keys_method):
 
 
 def value_synced_with_exif(value, path, metadata_key):
-    return _value_synced_with_metadata(value, path, metadata_key,
-                                       pyexiv2.Image.exifKeys)
+    return _metadata_value_synced_with_file(value, path, metadata_key,
+                                            pyexiv2.Image.exifKeys)
 
 
 def value_synced_with_iptc(value, path, metadata_key):
-    return _value_synced_with_metadata(value, path, metadata_key,
-                                       pyexiv2.Image.iptcKeys)
+    return _metadata_value_synced_with_file(value, path, metadata_key,
+                                            pyexiv2.Image.iptcKeys)
 
 
 def value_synced_with_exif_and_iptc(value, path, exif_key, iptc_key):
@@ -80,3 +80,25 @@ def value_synced_with_exif_and_iptc(value, path, exif_key, iptc_key):
     if iptc_value is None:
         return value == exif_value
     return value == exif_value == iptc_value
+
+
+def sync_metadata_value_to_file(value, path, metadata_key):
+    image_metadata = pyexiv2.Image(path)
+    image_metadata.readMetadata()
+    
+    # TODO: Just check sync status here. Get rid of sync check function.
+    image_metadata[metadata_key] = value
+    
+    image_metadata.writeMetadata()
+
+
+def sync_value_to_exif_and_iptc(value, path, exif_key, iptc_key):
+    image_metadata = pyexiv2.Image(path)
+    image_metadata.readMetadata()
+    
+    # TODO: Just check sync status here. Get rid of sync check function.
+    image_metadata[exif_key] = value
+    if iptc_key in image_metadata.iptcKeys():
+        del image_metadata[iptc_key]
+    
+    image_metadata.writeMetadata()
