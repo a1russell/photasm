@@ -7,7 +7,7 @@ def _value_synced_with_metadata(value, path, metadata_key, keys_method):
     metadata_value = None
     
     if metadata_key in keys_method(image_metadata):
-        metadata_value = image_metadata(metadata_key)
+        metadata_value = image_metadata[metadata_key]
     
     # If values are iterable, they should not be considered out of sync if
     # they simply aren't sorted the same. Therefore, iterable values are
@@ -47,9 +47,9 @@ def value_synced_with_exif_and_iptc(value, path, exif_key, iptc_key):
     iptc_value = None
     
     if exif_key in image_metadata.exifKeys():
-        exif_value = image_metadata(exif_key)
+        exif_value = image_metadata[exif_key]
     if iptc_key in image_metadata.iptcKeys():
-        iptc_value = image_metadata(iptc_key)
+        iptc_value = image_metadata[iptc_key]
     
     # If values are iterable, they should not be considered out of sync if
     # they simply aren't sorted the same. Therefore, iterable values are
