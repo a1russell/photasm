@@ -109,7 +109,6 @@ class Photo(models.Model):
             'Exif.Image.DateTimeOriginal', 'Iptc.Application2.DateCreated')
     
     def keywords_metadata_is_in_sync(self):
-        # TODO: Make sure only keyword order doesn't force sync.
         return value_synced_with_iptc(self.keywords, self.data.path,
             'Iptc.Application2.Keywords')
     
