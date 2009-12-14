@@ -124,3 +124,18 @@ def sync_value_to_exif_and_iptc(value, image, exif_key, iptc_key):
             del image[iptc_key]
     
     return mod
+
+
+def read_value_from_exif_and_iptc(image, exif_key, iptc_key):
+    require_pyexiv2_obj(image, 'image')
+    exif_value = None
+    iptc_value = None
+    
+    if exif_key in image.exifKeys():
+        exif_value = image[exif_key]
+    if iptc_key in image.iptcKeys():
+        iptc_value = image[exif_key]
+    
+    if exif_value is None:
+        return iptc_value
+    return exif_value

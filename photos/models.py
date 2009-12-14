@@ -76,37 +76,47 @@ class Photo(models.Model):
         
         mod = False # whether or not file actually needs written to
         
+        # sync description
         mod = sync_value_to_exif_and_iptc(self.description, image_metadata,
                                           'Exif.Image.ImageDescription',
                                           'Iptc.Application2.Caption') or mod
         
+        # sync artist
         mod = sync_value_to_exif_and_iptc(self.artist, image_metadata,
                                           'Exif.Image.Artist',
                                           'Iptc.Application2.Byline') or mod
         
+        # sync country
         mod = sync_value_to_iptc(self.country, image_metadata,
                                  'Iptc.Application2.CountryName') or mod
         
+        # sync province_state
         mod = sync_value_to_iptc(self.province_state, image_metadata,
                                  'Iptc.Application2.ProvinceState') or mod
         
+        # sync city
         mod = sync_value_to_iptc(self.city, image_metadata,
                                  'Iptc.Application2.City') or mod
         
+        # sync location
         mod = sync_value_to_iptc(self.location, image_metadata,
                                  'Iptc.Application2.SubLocation') or mod
         
+        # sync date_created
         mod = sync_value_to_exif_and_iptc(self.date_created, image_metadata,
                                           'Exif.Image.DateTimeOriginal',
                                           'Iptc.Application2.DateCreated') \
                                           or mod
         
+        # sync keywords
         mod = sync_value_to_iptc(self.keywords, image_metadata,
                                  'Iptc.Application2.Keywords') or mod
         
+        # sync image_width
         mod = sync_value_to_exif(self.image_width, image_metadata,
                                  'Exif.Image.ImageWidth') or mod
         
+        # sync image_height
         mod = sync_value_to_exif(self.image_height, image_metadata,
                                  'Exif.Image.ImageHeight') or mod
         
@@ -116,9 +126,93 @@ class Photo(models.Model):
         return mod
     
     def sync_metadata_from_file(self):
-        # TODO: Retrieve properties from Exif & IPTC.
-        # TODO: Keep efficiency in mind.
-        pass
+        image_metadata = pyexiv2.Image(self.data.path)
+        image_metadata.readMetadata()
+        
+        mod_instance = False  # whether or not database needs written to
+        
+        # sync description
+        mod_attr = not value_synced_with_exif_and_iptc(
+            self.description, image_metadata,
+            'Exif.Image.ImageDescription', 'Iptc.Application2.Caption')
+        mod_instance = mod_attr or mod_instance
+        if mod_attr:
+            self.description = read_value_from_exif_and_iptc(image_metadata,
+                'Exif.Image.ImageDescription', 'Iptc.Application2.Caption')
+        
+        # sync artist
+        mod_attr = not value_synced_with_exif_and_iptc(
+            self.artist, image_metadata,
+            'Exif.Image.Artist', 'Iptc.Application2.Byline')
+        mod_instance = mod_attr or mod_instance
+        if mod_attr:
+            self.artist = read_value_from_exif_and_iptc(image_metadata,
+                'Exif.Image.Artist', 'Iptc.Application2.Byline')
+        
+        # sync country
+        mod_attr = not value_synced_with_iptc(self.country, image_metadata,
+                                              'Iptc.Application2.CountryName')
+        mod_instance = mod_attr or mod_instance
+        if mod_attr:
+            self.country = image_metadata['Iptc.Application2.CountryName']
+        
+        # sync province_state
+        mod_attr = not value_synced_with_iptc(
+            self.province_state, image_metadata,
+            'Iptc.Application2.ProvinceState')
+        mod_instance = mod_attr or mod_instance
+        if mod_attr:
+            self.province_state = \
+                image_metadata['Iptc.Application2.ProvinceState']
+        
+        # sync city
+        mod_attr = not value_synced_with_iptc(self.city, image_metadata,
+                                              'Iptc.Application2.City')
+        mod_instance = mod_attr or mod_instance
+        if mod_attr:
+            self.city = image_metadata['Iptc.Application2.City']
+        
+        # sync location
+        mod_attr = not value_synced_with_iptc(self.location, image_metadata,
+                                              'Iptc.Application2.SubLocation')
+        mod_instance = mod_attr or mod_instance
+        if mod_attr:
+            self.location = image_metadata['Iptc.Application2.SubLocation']
+        
+        # sync date_created
+        mod_attr = not value_synced_with_exif_and_iptc(
+            self.date_created, image_metadata,
+            'Exif.Image.DateTimeOriginal', 'Iptc.Application2.DateCreated')
+        mod_instance = mod_attr or mod_instance
+        if mod_attr:
+            self.date_created = read_value_from_exif_and_iptc(image_metadata,
+                'Exif.Image.DateTimeOriginal', 'Iptc.Application2.DateCreated')
+        
+        # sync keywords
+        mod_attr = not value_synced_with_iptc(self.keywords, image_metadata,
+                                              'Iptc.Application2.Keywords')
+        mod_instance = mod_attr or mod_instance
+        if mod_attr:
+            self.keywords = image_metadata['Iptc.Application2.Keywords']
+        
+        # sync image_width
+        mod_attr = not value_synced_with_exif(self.image_width, image_metadata,
+                                              'Exif.Image.ImageWidth')
+        mod_instance = mod_attr or mod_instance
+        if mod_attr:
+            self.image_width = image_metadata['Exif.Image.ImageWidth']
+        
+        # sync image_height
+        mod_attr = not value_synced_with_exif(
+            self.image_height, image_metadata, 'Exif.Image.ImageHeight')
+        mod_instance = mod_attr or mod_instance
+        if mod_attr:
+            self.image_height = image_metadata['Exif.Image.ImageHeight']
+        
+        if mod_instance:
+            self.save()
+        
+        return mod_instance
 
 
 class PhotoUploadForm(ModelForm):
