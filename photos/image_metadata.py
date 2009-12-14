@@ -38,8 +38,6 @@ def _metadata_value_synced_with_file(value, image, metadata_key, keys_method):
     else:
         metadata_value = set(metadata_value)
     
-    if metadata_value is None:
-        return False
     return value == metadata_value
 
 
@@ -85,8 +83,6 @@ def value_synced_with_exif_and_iptc(value, image, exif_key, iptc_key):
     else:
         iptc_value = set(iptc_value)
     
-    if exif_value is None and iptc_value is None:
-        return False
     if exif_value is None:
         return value == iptc_value
     if iptc_value is None:
@@ -121,7 +117,12 @@ def sync_value_to_exif_and_iptc(value, image, exif_key, iptc_key):
     if mod:
         image[exif_key] = value
         if iptc_key in image.iptcKeys():
-            del image[iptc_key]
+            try:
+                del image[iptc_key]
+            # Workaround for a bug in pyexiv2:
+            # https://bugs.launchpad.net/pyexiv2/+bug/343403
+            except KeyError:
+                pass
     
     return mod
 
@@ -134,7 +135,7 @@ def read_value_from_exif_and_iptc(image, exif_key, iptc_key):
     if exif_key in image.exifKeys():
         exif_value = image[exif_key]
     if iptc_key in image.iptcKeys():
-        iptc_value = image[exif_key]
+        iptc_value = image[iptc_key]
     
     if exif_value is None:
         return iptc_value

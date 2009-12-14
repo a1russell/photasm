@@ -25,6 +25,7 @@ def photo_upload(request):
             new_photo.owner = request.user
             new_photo.save()
             form.save_m2m()
+            new_photo.sync_metadata_from_file()
             request.user.message_set.create(
                 message="Your photograph was added successfully.")
             return HttpResponseRedirect(reverse("photo_detail",
@@ -45,6 +46,7 @@ def photo_edit(request, object_id):
 
         if form.is_valid():
             form.save()
+            object.sync_metadata_to_file()
             request.user.message_set.create(
                 message="Your photograph was successfully updated.")
             return HttpResponseRedirect(reverse("photo_detail",

@@ -59,7 +59,7 @@ class Photo(models.Model):
     # Exif ImageWidth
     image_width = models.IntegerField(editable=False)
 
-    # Exif ImageHeight
+    # Exif ImageLength
     image_height = models.IntegerField(editable=False)
 
     album = models.ForeignKey(Album)
@@ -109,7 +109,7 @@ class Photo(models.Model):
                                           or mod
         
         # sync keywords
-        mod = sync_value_to_iptc(self.keywords, image_metadata,
+        mod = sync_value_to_iptc(self.keywords.all(), image_metadata,
                                  'Iptc.Application2.Keywords') or mod
         
         # sync image_width
@@ -118,7 +118,7 @@ class Photo(models.Model):
         
         # sync image_height
         mod = sync_value_to_exif(self.image_height, image_metadata,
-                                 'Exif.Image.ImageHeight') or mod
+                                 'Exif.Image.ImageLength') or mod
         
         if mod:
             image_metadata.writeMetadata()
@@ -153,7 +153,8 @@ class Photo(models.Model):
         mod_attr = not value_synced_with_iptc(self.country, image_metadata,
                                               'Iptc.Application2.CountryName')
         mod_instance = mod_attr or mod_instance
-        if mod_attr:
+        if ('Iptc.Application2.CountryName' in image_metadata.iptcKeys() and
+            mod_attr):
             self.country = image_metadata['Iptc.Application2.CountryName']
         
         # sync province_state
@@ -161,7 +162,8 @@ class Photo(models.Model):
             self.province_state, image_metadata,
             'Iptc.Application2.ProvinceState')
         mod_instance = mod_attr or mod_instance
-        if mod_attr:
+        if ('Iptc.Application2.ProvinceState' in image_metadata.iptcKeys() and
+            mod_attr):
             self.province_state = \
                 image_metadata['Iptc.Application2.ProvinceState']
         
@@ -169,14 +171,15 @@ class Photo(models.Model):
         mod_attr = not value_synced_with_iptc(self.city, image_metadata,
                                               'Iptc.Application2.City')
         mod_instance = mod_attr or mod_instance
-        if mod_attr:
+        if 'Iptc.Application2.City' in image_metadata.iptcKeys() and mod_attr:
             self.city = image_metadata['Iptc.Application2.City']
         
         # sync location
         mod_attr = not value_synced_with_iptc(self.location, image_metadata,
                                               'Iptc.Application2.SubLocation')
         mod_instance = mod_attr or mod_instance
-        if mod_attr:
+        if ('Iptc.Application2.SubLocation' in image_metadata.iptcKeys() and
+            mod_attr):
             self.location = image_metadata['Iptc.Application2.SubLocation']
         
         # sync date_created
@@ -189,25 +192,29 @@ class Photo(models.Model):
                 'Exif.Image.DateTimeOriginal', 'Iptc.Application2.DateCreated')
         
         # sync keywords
-        mod_attr = not value_synced_with_iptc(self.keywords, image_metadata,
-                                              'Iptc.Application2.Keywords')
+        mod_attr = not value_synced_with_iptc(self.keywords.all(),
+            image_metadata, 'Iptc.Application2.Keywords')
         mod_instance = mod_attr or mod_instance
-        if mod_attr:
-            self.keywords = image_metadata['Iptc.Application2.Keywords']
+        if ('Iptc.Application2.Keywords' in image_metadata.iptcKeys() and
+            mod_attr):
+            for keyword in image_metadata['Iptc.Application2.Keywords']:
+                raise NotImplementedError
+                # TODO: Implement this. Handle PhotoTag objects.
+                self.keywords.add(keyword)
         
         # sync image_width
         mod_attr = not value_synced_with_exif(self.image_width, image_metadata,
                                               'Exif.Image.ImageWidth')
         mod_instance = mod_attr or mod_instance
-        if mod_attr:
+        if 'Exif.Image.ImageWidth' in image_metadata.exifKeys() and mod_attr:
             self.image_width = image_metadata['Exif.Image.ImageWidth']
         
         # sync image_height
         mod_attr = not value_synced_with_exif(
-            self.image_height, image_metadata, 'Exif.Image.ImageHeight')
+            self.image_height, image_metadata, 'Exif.Image.ImageLength')
         mod_instance = mod_attr or mod_instance
-        if mod_attr:
-            self.image_height = image_metadata['Exif.Image.ImageHeight']
+        if 'Exif.Image.ImageLength' in image_metadata.exifKeys() and mod_attr:
+            self.image_height = image_metadata['Exif.Image.ImageLength']
         
         if mod_instance and commit:
             self.save()
@@ -219,22 +226,9 @@ class PhotoUploadForm(ModelForm):
     class Meta:
         model = Photo
         fields = ('album', 'data',)
-    
-    def save(self, commit=True, *args, **kwargs):
-        instance = super(PhotoUploadForm, self).save(False, *args, **kwargs)
-        instance.sync_metadata_from_file(commit=False)
-        if commit:
-            instance.save()
-            self.save_m2m()
-        return instance
 
 
 class PhotoEditForm(ModelForm):
     class Meta:
         model = Photo
         exclude = ('owner', 'data',)
-    
-    def save(self, *args, **kwargs):
-        instance = super(PhotoEditForm, self).save(*args, **kwargs)
-        instance.sync_metadata_to_file()
-        return instance
