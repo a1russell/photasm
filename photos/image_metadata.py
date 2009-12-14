@@ -1,13 +1,26 @@
 import pyexiv2
 
 
-def _metadata_value_synced_with_file(value, path, metadata_key, keys_method):
-    image_metadata = pyexiv2.Image(path)
-    image_metadata.readMetadata()
+def require_pyexiv2_obj(obj, obj_name):
+    is_pyexiv2_obj = True
+    if (not (hasattr(obj, '__getitem__') and callable(obj.__getitem__) and
+        hasattr(obj, '__setitem__') and callable(obj.__setitem__) and
+        hasattr(obj, '__delitem__') and callable(obj.__delitem__) and
+        hasattr(obj, 'exifKeys') and callable(obj.exifKeys) and
+        hasattr(obj, 'iptcKeys') and callable(obj.iptcKeys))):
+        is_pyexiv2_obj = False
+    
+    if not is_pyexiv2_obj:
+        raise TypeError("Object '%s' must be an instance of pyexiv2.Image."
+                        % (obj_name,))
+
+
+def _metadata_value_synced_with_file(value, image, metadata_key, keys_method):
+    require_pyexiv2_obj(image, 'image')
     metadata_value = None
     
-    if metadata_key in keys_method(image_metadata):
-        metadata_value = image_metadata[metadata_key]
+    if metadata_key in keys_method(image):
+        metadata_value = image[metadata_key]
     
     # If values are iterable, they should not be considered out of sync if
     # they simply aren't sorted the same. Therefore, iterable values are
@@ -30,26 +43,25 @@ def _metadata_value_synced_with_file(value, path, metadata_key, keys_method):
     return value == metadata_value
 
 
-def value_synced_with_exif(value, path, metadata_key):
-    return _metadata_value_synced_with_file(value, path, metadata_key,
+def value_synced_with_exif(value, image, metadata_key):
+    return _metadata_value_synced_with_file(value, image, metadata_key,
                                             pyexiv2.Image.exifKeys)
 
 
-def value_synced_with_iptc(value, path, metadata_key):
-    return _metadata_value_synced_with_file(value, path, metadata_key,
+def value_synced_with_iptc(value, image, metadata_key):
+    return _metadata_value_synced_with_file(value, image, metadata_key,
                                             pyexiv2.Image.iptcKeys)
 
 
-def value_synced_with_exif_and_iptc(value, path, exif_key, iptc_key):
-    image_metadata = pyexiv2.Image(path)
-    image_metadata.readMetadata()
+def value_synced_with_exif_and_iptc(value, image, exif_key, iptc_key):
+    require_pyexiv2_obj(image, 'image')
     exif_value = None
     iptc_value = None
     
-    if exif_key in image_metadata.exifKeys():
-        exif_value = image_metadata[exif_key]
-    if iptc_key in image_metadata.iptcKeys():
-        iptc_value = image_metadata[iptc_key]
+    if exif_key in image.exifKeys():
+        exif_value = image[exif_key]
+    if iptc_key in image.iptcKeys():
+        iptc_value = image[iptc_key]
     
     # If values are iterable, they should not be considered out of sync if
     # they simply aren't sorted the same. Therefore, iterable values are
@@ -82,23 +94,33 @@ def value_synced_with_exif_and_iptc(value, path, exif_key, iptc_key):
     return value == exif_value == iptc_value
 
 
-def sync_metadata_value_to_file(value, path, metadata_key):
-    image_metadata = pyexiv2.Image(path)
-    image_metadata.readMetadata()
+def _sync_metadata_value_to_file(value, image, metadata_key, sync_check_func):
+    require_pyexiv2_obj(image, 'image')
     
-    # TODO: Just check sync status here. Get rid of sync check function.
-    image_metadata[metadata_key] = value
+    mod = not sync_check_func(value, image, metadata_key)
+    if mod:
+        image[metadata_key] = value
     
-    image_metadata.writeMetadata()
+    return mod
 
 
-def sync_value_to_exif_and_iptc(value, path, exif_key, iptc_key):
-    image_metadata = pyexiv2.Image(path)
-    image_metadata.readMetadata()
+def sync_value_to_exif(value, image, metadata_key):
+    return _sync_metadata_value_to_file(value, image, metadata_key,
+                                        value_synced_with_exif)
+
+
+def sync_value_to_iptc(value, image, metadata_key):
+    return _sync_metadata_value_to_file(value, image, metadata_key,
+                                        value_synced_with_iptc)
+
+
+def sync_value_to_exif_and_iptc(value, image, exif_key, iptc_key):
+    require_pyexiv2_obj(image, 'image')
     
-    # TODO: Just check sync status here. Get rid of sync check function.
-    image_metadata[exif_key] = value
-    if iptc_key in image_metadata.iptcKeys():
-        del image_metadata[iptc_key]
+    mod = not value_synced_with_exif_and_iptc(value, image, exif_key, iptc_key)
+    if mod:
+        image[exif_key] = value
+        if iptc_key in image.iptcKeys():
+            del image[iptc_key]
     
-    image_metadata.writeMetadata()
+    return mod

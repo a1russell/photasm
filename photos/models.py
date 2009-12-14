@@ -71,126 +71,54 @@ class Photo(models.Model):
         return repr
     
     def sync_metadata_to_file(self):
-        # TODO: Write updated Exif & IPTC back to the image.
-        # TODO: Keep efficiency in mind.
-        pass
+        image_metadata = pyexiv2.Image(self.data.path)
+        image_metadata.readMetadata()
+        
+        mod = False # whether or not file actually needs written to
+        
+        mod = sync_value_to_exif_and_iptc(self.description, image_metadata,
+                                          'Exif.Image.ImageDescription',
+                                          'Iptc.Application2.Caption') or mod
+        
+        mod = sync_value_to_exif_and_iptc(self.artist, image_metadata,
+                                          'Exif.Image.Artist',
+                                          'Iptc.Application2.Byline') or mod
+        
+        mod = sync_value_to_iptc(self.country, image_metadata,
+                                 'Iptc.Application2.CountryName') or mod
+        
+        mod = sync_value_to_iptc(self.province_state, image_metadata,
+                                 'Iptc.Application2.ProvinceState') or mod
+        
+        mod = sync_value_to_iptc(self.city, image_metadata,
+                                 'Iptc.Application2.City') or mod
+        
+        mod = sync_value_to_iptc(self.location, image_metadata,
+                                 'Iptc.Application2.SubLocation') or mod
+        
+        mod = sync_value_to_exif_and_iptc(self.date_created, image_metadata,
+                                          'Exif.Image.DateTimeOriginal',
+                                          'Iptc.Application2.DateCreated') \
+                                          or mod
+        
+        mod = sync_value_to_iptc(self.keywords, image_metadata,
+                                 'Iptc.Application2.Keywords') or mod
+        
+        mod = sync_value_to_exif(self.image_width, image_metadata,
+                                 'Exif.Image.ImageWidth') or mod
+        
+        mod = sync_value_to_exif(self.image_height, image_metadata,
+                                 'Exif.Image.ImageHeight') or mod
+        
+        if mod:
+            image_metadata.writeMetadata()
+        
+        return mod
     
     def sync_metadata_from_file(self):
         # TODO: Retrieve properties from Exif & IPTC.
         # TODO: Keep efficiency in mind.
         pass
-    
-    def sync_definition_metadata_to_file(self):
-        needs_sync = not self.definition_metadata_is_in_sync()
-        if needs_sync:
-            sync_value_to_exif_and_iptc(self.description, self.data.path,
-                'Exif.Image.ImageDescription', 'Iptc.Application2.Caption')
-        return needs_sync
-    
-    def sync_artist_metadata_to_file(self):
-        needs_sync = not self.artist_metadata_is_in_sync()
-        if needs_sync:
-            sync_value_to_exif_and_iptc(self.artist, self.data.path,
-                'Exif.Image.Artist', 'Iptc.Application2.Byline')
-        return needs_sync
-    
-    def sync_country_metadata_to_file(self):
-        needs_sync = not self.country_metadata_is_in_sync()
-        if needs_sync:
-            sync_metadata_value_to_file(self.country, self.data.path,
-                'Iptc.Application2.CountryName')
-        return needs_sync
-    
-    def sync_province_state_metadata_to_file(self):
-        needs_sync = not self.province_state_metadata_is_in_sync()
-        if needs_sync:
-            sync_metadata_value_to_file(self.province_state, self.data.path,
-                'Iptc.Application2.ProvinceState')
-        return needs_sync
-    
-    def sync_city_metadata_to_file(self):
-        needs_sync = not self.city_metadata_is_in_sync()
-        if needs_sync:
-            sync_metadata_value_to_file(self.city, self.data.path,
-                'Iptc.Application2.City')
-        return needs_sync
-    
-    def sync_location_metadata_to_file(self):
-        needs_sync = not self.location_metadata_is_in_sync()
-        if needs_sync:
-            sync_metadata_value_to_file(self.location, self.data.path,
-                'Iptc.Application2.SubLocation')
-        return needs_sync
-    
-    def sync_date_created_metadata_to_file(self):
-        needs_sync = not self.date_created_metadata_is_in_sync()
-        if needs_sync:
-            sync_value_to_exif_and_iptc(self.date_created, self.data.path,
-                'Exif.Image.DateTimeOriginal', 'Iptc.Application2.DateCreated')
-        return needs_sync
-    
-    def sync_keywords_metadata_to_file(self):
-        needs_sync = not self.keywords_metadata_is_in_sync()
-        if needs_sync:
-            sync_metadata_value_to_file(self.keywords, self.data.path,
-                'Iptc.Application2.Keywords')
-        return needs_sync
-    
-    def sync_image_width_metadata_to_file(self):
-        needs_sync = not self.image_width_metadata_is_in_sync()
-        if needs_sync:
-            sync_metadata_value_to_file(self.image_width, self.data.path,
-                'Exif.Image.ImageWidth')
-        return needs_sync
-    
-    def sync_image_height_metadata_to_file(self):
-        needs_sync = not self.image_height_metadata_is_in_sync()
-        if needs_sync:
-            sync_metadata_value_to_file(self.image_height, self.data.path,
-                'Exif.Image.ImageHeight')
-        return needs_sync
-    
-    def definition_metadata_is_in_sync(self):
-        return value_synced_with_exif_and_iptc(
-            self.description, self.data.path,
-            'Exif.Image.ImageDescription', 'Iptc.Application2.Caption')
-    
-    def artist_metadata_is_in_sync(self):
-        return value_synced_with_exif_and_iptc(self.artist, self.data.path,
-            'Exif.Image.Artist', 'Iptc.Application2.Byline')
-    
-    def country_metadata_is_in_sync(self):
-        return value_synced_with_iptc(self.country, self.data.path,
-            'Iptc.Application2.CountryName')
-    
-    def province_state_metadata_is_in_sync(self):
-        return value_synced_with_iptc(self.province_state, self.data.path,
-            'Iptc.Application2.ProvinceState')
-    
-    def city_metadata_is_in_sync(self):
-        return value_synced_with_iptc(self.city, self.data.path,
-            'Iptc.Application2.City')
-    
-    def location_metadata_is_in_sync(self):
-        return value_synced_with_iptc(self.location, self.data.path,
-            'Iptc.Application2.SubLocation')
-    
-    def date_created_metadata_is_in_sync(self):
-        return value_synced_with_exif_and_iptc(
-            self.date_created, self.data.path,
-            'Exif.Image.DateTimeOriginal', 'Iptc.Application2.DateCreated')
-    
-    def keywords_metadata_is_in_sync(self):
-        return value_synced_with_iptc(self.keywords, self.data.path,
-            'Iptc.Application2.Keywords')
-    
-    def image_width_metadata_is_in_sync(self):
-        return value_synced_with_exif(self.image_width, self.data.path,
-            'Exif.Image.ImageWidth')
-    
-    def image_height_metadata_is_in_sync(self):
-        return value_synced_with_exif(self.image_height, self.data.path,
-            'Exif.Image.ImageHeight')
 
 
 class PhotoUploadForm(ModelForm):
