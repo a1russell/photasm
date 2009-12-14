@@ -22,6 +22,8 @@ def _metadata_value_synced_with_file(value, image, metadata_key, keys_method):
     if metadata_key in keys_method(image):
         metadata_value = image[metadata_key]
     
+    # TODO: Empty set counts as in sync with None.
+    
     # If values are iterable, they should not be considered out of sync if
     # they simply aren't sorted the same. Therefore, iterable values are
     # converted to unordered sets.
@@ -61,6 +63,8 @@ def value_synced_with_exif_and_iptc(value, image, exif_key, iptc_key):
     if iptc_key in image.iptcKeys():
         iptc_value = image[iptc_key]
     
+    # TODO: Empty set counts as in sync with None.
+    
     # If values are iterable, they should not be considered out of sync if
     # they simply aren't sorted the same. Therefore, iterable values are
     # converted to unordered sets.
@@ -95,6 +99,7 @@ def _sync_metadata_value_to_file(value, image, metadata_key, sync_check_func):
     
     mod = not sync_check_func(value, image, metadata_key)
     if mod:
+        # TODO: If value is empty, delete key.
         image[metadata_key] = value
     
     return mod
@@ -132,6 +137,7 @@ def read_value_from_exif_and_iptc(image, exif_key, iptc_key):
     exif_value = None
     iptc_value = None
     
+    # TODO: If value is empty, delete key.
     if exif_key in image.exifKeys():
         exif_value = image[exif_key]
     if iptc_key in image.iptcKeys():
