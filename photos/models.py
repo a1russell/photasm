@@ -125,7 +125,7 @@ class Photo(models.Model):
         
         return mod
     
-    def sync_metadata_from_file(self):
+    def sync_metadata_from_file(self, commit=True):
         image_metadata = pyexiv2.Image(self.data.path)
         image_metadata.readMetadata()
         
@@ -209,7 +209,7 @@ class Photo(models.Model):
         if mod_attr:
             self.image_height = image_metadata['Exif.Image.ImageHeight']
         
-        if mod_instance:
+        if mod_instance and commit:
             self.save()
         
         return mod_instance
@@ -218,10 +218,23 @@ class Photo(models.Model):
 class PhotoUploadForm(ModelForm):
     class Meta:
         model = Photo
-        fields = ('owner', 'album', 'data',)
+        fields = ('album', 'data',)
+    
+    def save(self, commit=True, *args, **kwargs):
+        instance = super(PhotoUploadForm, self).save(False, *args, **kwargs)
+        instance.sync_metadata_from_file(commit=False)
+        if commit:
+            instance.save()
+            self.save_m2m()
+        return instance
 
 
 class PhotoEditForm(ModelForm):
     class Meta:
         model = Photo
-        exclude = ('data',)
+        exclude = ('owner', 'data',)
+    
+    def save(self, *args, **kwargs):
+        instance = super(PhotoEditForm, self).save(*args, **kwargs)
+        instance.sync_metadata_to_file()
+        return instance

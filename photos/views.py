@@ -21,7 +21,10 @@ def photo_upload(request):
         form = PhotoUploadForm(request.POST, request.FILES)
 
         if form.is_valid():
-            form.save()
+            new_photo = form.save(commit=False)
+            new_photo.owner = request.user
+            new_photo.save()
+            form.save_m2m()
             request.user.message_set.create(
                 message="Your photograph was added successfully.")
             return HttpResponseRedirect(reverse("photo_detail",
