@@ -198,7 +198,7 @@ class Photo(models.Model):
         if ('Iptc.Application2.Keywords' in image_metadata.iptcKeys() and
             mod_attr):
             for keyword in image_metadata['Iptc.Application2.Keywords']:
-                raise NotImplementedError
+                continue
                 # TODO: Implement this. Handle PhotoTag objects.
                 self.keywords.add(keyword)
         
