@@ -15,6 +15,17 @@ def require_pyexiv2_obj(obj, obj_name):
                         % (obj_name,))
 
 
+def _is_iter(obj):
+    try:
+        iter(obj)
+    except TypeError:
+        pass
+    else:
+        if not isinstance(obj, str):
+            return True
+    return False
+
+
 def _metadata_value_synced_with_file(value, image, metadata_key, keys_method):
     require_pyexiv2_obj(image, 'image')
     metadata_value = None
@@ -27,17 +38,9 @@ def _metadata_value_synced_with_file(value, image, metadata_key, keys_method):
     # If values are iterable, they should not be considered out of sync if
     # they simply aren't sorted the same. Therefore, iterable values are
     # converted to unordered sets.
-    try:
-        iter(value)
-    except TypeError:
-        pass
-    else:
+    if _is_iter(value):
         value = set(value)
-    try:
-        iter(metadata_value)
-    except TypeError:
-        pass
-    else:
+    if _is_iter(metadata_value):
         metadata_value = set(metadata_value)
     
     return value == metadata_value
@@ -68,23 +71,11 @@ def value_synced_with_exif_and_iptc(value, image, exif_key, iptc_key):
     # If values are iterable, they should not be considered out of sync if
     # they simply aren't sorted the same. Therefore, iterable values are
     # converted to unordered sets.
-    try:
-        iter(value)
-    except TypeError:
-        pass
-    else:
+    if _is_iter(value):
         value = set(value)
-    try:
-        iter(exif_value)
-    except TypeError:
-        pass
-    else:
+    if _is_iter(exif_value):
         exif_value = set(exif_value)
-    try:
-        iter(iptc_value)
-    except TypeError:
-        pass
-    else:
+    if _is_iter(iptc_value):
         iptc_value = set(iptc_value)
     
     if exif_value is None:
