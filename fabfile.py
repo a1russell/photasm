@@ -30,6 +30,8 @@ def deploy():
          '%(project_root)s/photosharing/;'
          'rm -rf %(project_root)s/photosharing-%(release)s.bak;'
          'fi' % env)
+    sudo('chown -R root:www-admin %(project_root)s/photosharing' % env)
+    sudo('chmod -R g+w %(project_root)s/photosharing' % env)
     run('rm /tmp/photosharing-%(release)s.tar.gz' % env)
     local('rm /tmp/photosharing-%(release)s.tar.gz' % env)
     sudo('apache2ctl -k graceful')
