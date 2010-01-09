@@ -1,0 +1,25 @@
+TODO:
+=====
+
+* Implement methods to sync metadata between filesystem and database.
+
+* Try overriding add_view and change_view in PhotoAdmin and changing the form
+  to PhotoUploadForm or PhotoEditForm before the call to super. Does this
+  introduce concurrency problems?  Maybe try implementing a ModelForm with a 
+  field getter that returns different fields depending on add or change.
+
+* Write docstrings, including for the model properties.
+
+* Create a template for 404s, etc.
+
+* Figure out how to create temporary test images with PIL.
+
+* In test.py::
+  
+    import photosharing.photos.image_metadata
+    __test__ = {
+        'image_metadata': image_metadata,
+    }
+
+* Implement inline formset for PhotoTags.
+
