@@ -1,13 +1,13 @@
 from django.conf.urls.defaults import *
 
-from photosharing.photos.models import Photo
+from photasm.photos.models import Photo
 
 info_dict = {
     'queryset': Photo.objects.all(),
 }
 
 urlpatterns = patterns(
-    'photosharing.photos.views',
+    'photasm.photos.views',
     
     url(r'^$', 'photo_list',
         dict(info_dict, template_name="photos/photo_list.html"),

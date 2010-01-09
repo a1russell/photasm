@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from photosharing.photos.models import Album, Photo, PhotoTag
+from photasm.photos.models import Album, Photo, PhotoTag
 
 
 class PhotoAdmin(admin.ModelAdmin):

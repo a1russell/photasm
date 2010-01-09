@@ -2,7 +2,7 @@ from django.contrib.auth.models import User
 from django.db import models
 from django.forms import ModelForm
 
-from photosharing.photos.image_metadata import *
+from photasm.photos.image_metadata import *
 
 
 class Album(models.Model):

@@ -4,7 +4,7 @@ from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render_to_response
 from django.views.generic import list_detail
 
-from photosharing.photos.models import Photo, PhotoEditForm, PhotoUploadForm
+from photasm.photos.models import Photo, PhotoEditForm, PhotoUploadForm
 
 
 def photo_list(request, queryset, *args, **kwargs):

@@ -15,7 +15,7 @@ urlpatterns = patterns(
 
     (r'^admin/', include(admin.site.urls)),
     
-    (r'^photos/', include('photosharing.photos.urls')),
+    (r'^photos/', include('photasm.photos.urls')),
 )
 
 if settings.DEBUG:

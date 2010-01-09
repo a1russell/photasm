@@ -1,4 +1,4 @@
-# Django settings for photosharing project.
+# Django settings for photasm project.
 
 DEBUG = False
 TEMPLATE_DEBUG = DEBUG
@@ -67,7 +67,7 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.auth.middleware.AuthenticationMiddleware',
 )
 
-ROOT_URLCONF = 'photosharing.urls'
+ROOT_URLCONF = 'photasm.urls'
 
 TEMPLATE_DIRS = (
     # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
@@ -80,7 +80,7 @@ INSTALLED_APPS = (
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.admin',
-    'photosharing.photos',
+    'photasm.photos',
 )
 
 try:

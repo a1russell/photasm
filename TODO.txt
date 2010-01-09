@@ -16,7 +16,7 @@ TODO:
 
 * In test.py::
   
-    import photosharing.photos.image_metadata
+    import photasm.photos.image_metadata
     __test__ = {
         'image_metadata': image_metadata,
     }

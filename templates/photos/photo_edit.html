@@ -6,7 +6,7 @@
 
 {% block content %}
 	<form method="post" action=
-		  "{% url photosharing.photos.views.photo_edit form.instance.id %}">
+		  "{% url photasm.photos.views.photo_edit form.instance.id %}">
 		{{ form.as_p }}
 		<input type="submit" value="Submit" />
 	</form>
