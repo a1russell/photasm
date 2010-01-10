@@ -70,6 +70,13 @@ class Photo(models.Model):
             repr += ": " + self.description
         return repr
     
+    def delete(self, *args, **kwargs):
+        super(Photo, self).delete(*args, **kwargs)
+    
+    @models.permalink
+    def get_absolute_url(self):
+        return ('photo_detail', (), {'object_id': self.id})
+    
     def sync_metadata_to_file(self):
         image_metadata = pyexiv2.Image(self.data.path)
         image_metadata.readMetadata()
@@ -137,8 +144,11 @@ class Photo(models.Model):
             'Exif.Image.ImageDescription', 'Iptc.Application2.Caption')
         mod_instance = mod_attr or mod_instance
         if mod_attr:
-            self.description = read_value_from_exif_and_iptc(image_metadata,
+            value = read_value_from_exif_and_iptc(image_metadata,
                 'Exif.Image.ImageDescription', 'Iptc.Application2.Caption')
+            if value is None:
+                value = str()
+            self.description = value
         
         # sync artist
         mod_attr = not value_synced_with_exif_and_iptc(
@@ -146,8 +156,11 @@ class Photo(models.Model):
             'Exif.Image.Artist', 'Iptc.Application2.Byline')
         mod_instance = mod_attr or mod_instance
         if mod_attr:
-            self.artist = read_value_from_exif_and_iptc(image_metadata,
+            value = read_value_from_exif_and_iptc(image_metadata,
                 'Exif.Image.Artist', 'Iptc.Application2.Byline')
+            if value is None:
+                value = str()
+            self.artist = value
         
         # sync country
         mod_attr = not value_synced_with_iptc(self.country, image_metadata,
@@ -155,7 +168,10 @@ class Photo(models.Model):
         mod_instance = mod_attr or mod_instance
         if ('Iptc.Application2.CountryName' in image_metadata.iptcKeys() and
             mod_attr):
-            self.country = image_metadata['Iptc.Application2.CountryName']
+            value = image_metadata['Iptc.Application2.CountryName']
+            if value is None:
+                value = str()
+            self.country = value
         
         # sync province_state
         mod_attr = not value_synced_with_iptc(
@@ -164,15 +180,20 @@ class Photo(models.Model):
         mod_instance = mod_attr or mod_instance
         if ('Iptc.Application2.ProvinceState' in image_metadata.iptcKeys() and
             mod_attr):
-            self.province_state = \
-                image_metadata['Iptc.Application2.ProvinceState']
+            value = image_metadata['Iptc.Application2.ProvinceState']
+            if value is None:
+                value = str()
+            self.province_state = value
         
         # sync city
         mod_attr = not value_synced_with_iptc(self.city, image_metadata,
                                               'Iptc.Application2.City')
         mod_instance = mod_attr or mod_instance
         if 'Iptc.Application2.City' in image_metadata.iptcKeys() and mod_attr:
-            self.city = image_metadata['Iptc.Application2.City']
+            value = image_metadata['Iptc.Application2.City']
+            if value is None:
+                value = str()
+            self.city = value
         
         # sync location
         mod_attr = not value_synced_with_iptc(self.location, image_metadata,
@@ -180,7 +201,10 @@ class Photo(models.Model):
         mod_instance = mod_attr or mod_instance
         if ('Iptc.Application2.SubLocation' in image_metadata.iptcKeys() and
             mod_attr):
-            self.location = image_metadata['Iptc.Application2.SubLocation']
+            value = image_metadata['Iptc.Application2.SubLocation']
+            if value is None:
+                value = str()
+            self.location = value
         
         # sync date_created
         mod_attr = not value_synced_with_exif_and_iptc(
