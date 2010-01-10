@@ -26,6 +26,26 @@ def _is_iter(obj):
     return False
 
 
+def _collapse_empty_to_none(value):
+    try:
+        value_length = len(value)
+    except TypeError:
+        pass
+    else:
+        if value_length == 0:
+            value = None
+    return value
+
+
+def _del_img_key(image, metadata_key):
+    # Workaround for a bug in pyexiv2:
+    # https://bugs.launchpad.net/pyexiv2/+bug/343403
+    try:
+        del image[metadata_key]
+    except KeyError:
+        pass
+
+
 def _metadata_value_synced_with_file(value, image, metadata_key, keys_method):
     require_pyexiv2_obj(image, 'image')
     metadata_value = None
@@ -33,7 +53,8 @@ def _metadata_value_synced_with_file(value, image, metadata_key, keys_method):
     if metadata_key in keys_method(image):
         metadata_value = image[metadata_key]
     
-    # TODO: Empty set counts as in sync with None.
+    # Empty set or string counts as in sync with None.
+    value = _collapse_empty_to_none(value)
     
     # If values are iterable, they should not be considered out of sync if
     # they simply aren't sorted the same. Therefore, iterable values are
@@ -66,7 +87,8 @@ def value_synced_with_exif_and_iptc(value, image, exif_key, iptc_key):
     if iptc_key in image.iptcKeys():
         iptc_value = image[iptc_key]
     
-    # TODO: Empty set counts as in sync with None.
+    # Empty set or string counts as in sync with None.
+    value = _collapse_empty_to_none(value)
     
     # If values are iterable, they should not be considered out of sync if
     # they simply aren't sorted the same. Therefore, iterable values are
@@ -88,10 +110,25 @@ def value_synced_with_exif_and_iptc(value, image, exif_key, iptc_key):
 def _sync_metadata_value_to_file(value, image, metadata_key, sync_check_func):
     require_pyexiv2_obj(image, 'image')
     
+    value_deleted = False
     mod = not sync_check_func(value, image, metadata_key)
     if mod:
-        # TODO: If value is empty, delete key.
-        image[metadata_key] = value
+        # If value is empty or None, delete key.
+        if value is None:
+            _del_img_key(image, metadata_key)
+            value_deleted = True
+        try:
+            value_length = len(value)
+        except TypeError:
+            pass
+        else:
+            if value_length == 0:
+                _del_img_key(image, metadata_key)
+                value_deleted = True
+        
+        # Otherwise, save key.
+        if not value_deleted:
+            image[metadata_key] = value
     
     return mod
 
@@ -109,16 +146,29 @@ def sync_value_to_iptc(value, image, metadata_key):
 def sync_value_to_exif_and_iptc(value, image, exif_key, iptc_key):
     require_pyexiv2_obj(image, 'image')
     
+    value_deleted = False
     mod = not value_synced_with_exif_and_iptc(value, image, exif_key, iptc_key)
     if mod:
-        image[exif_key] = value
+        # If value is empty or None, delete Exif key.
+        if value is None:
+            _del_img_key(image, exif_key)
+            value_deleted = True
+        try:
+            value_length = len(value)
+        except TypeError:
+            pass
+        else:
+            if value_length == 0:
+                _del_img_key(image, exif_key)
+                value_deleted = True
+        
+        # Otherwise, save Exif key.
+        if not value_deleted:
+            image[exif_key] = value
+        
+        # Delete IPTC key.
         if iptc_key in image.iptcKeys():
-            try:
-                del image[iptc_key]
-            # Workaround for a bug in pyexiv2:
-            # https://bugs.launchpad.net/pyexiv2/+bug/343403
-            except KeyError:
-                pass
+            _del_img_key(image, iptc_key)
     
     return mod
 
@@ -128,7 +178,6 @@ def read_value_from_exif_and_iptc(image, exif_key, iptc_key):
     exif_value = None
     iptc_value = None
     
-    # TODO: If value is empty, delete key.
     if exif_key in image.exifKeys():
         exif_value = image[exif_key]
     if iptc_key in image.iptcKeys():
