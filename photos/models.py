@@ -1,4 +1,5 @@
 from django.contrib.auth.models import User
+from django.core.files.storage import default_storage
 from django.db import models
 from django.forms import ModelForm
 
@@ -70,8 +71,15 @@ class Photo(models.Model):
             repr += ": " + self.description
         return repr
     
-    def delete(self, *args, **kwargs):
-        super(Photo, self).delete(*args, **kwargs)
+    def save(self, *args, **kwargs):
+        try:
+            old_obj = Photo.objects.get(pk=self.pk)
+            if old_obj.image.path != self.image.path:
+                path = old_obj.image.path
+                default_storage.delete(path)
+        except:
+            pass
+        super(Photo, self).save(*args, **kwargs)
     
     @models.permalink
     def get_absolute_url(self):
