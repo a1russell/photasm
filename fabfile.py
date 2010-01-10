@@ -7,10 +7,11 @@ def deploy():
     
     """
     # Options for specifying env requirements:
-    # In ~/.fabricrc: hosts = host1,host2
     # Command line, per task: fab deploy:hosts="host1;host2"
-    # Command line, globally: fab --hosts host1,host2 deploy 
+    # Command line, globally: fab --hosts host1,host2 deploy
     require('hosts')
+    # Place directory in ~/.fabricrc, e.g.:
+    # project_root = /usr/local/webapps/
     require('project_root')
     import time
     env.release = time.strftime('%Y%m%d%H%M%S')
