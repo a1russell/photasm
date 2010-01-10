@@ -1,16 +1,14 @@
 TODO:
 =====
 
-* Implement methods to sync metadata between filesystem and database.
-
-* Try overriding add_view and change_view in PhotoAdmin and changing the form
-  to PhotoUploadForm or PhotoEditForm before the call to super. Does this
-  introduce concurrency problems?  Maybe try implementing a ModelForm with a 
-  field getter that returns different fields depending on add or change.
+* Delete picture from filesystem upon deletion from database. Example 
+  obj.file.name: photos/2010/01/10/PA311083.JPG
 
 * Write docstrings, including for the model properties.
 
-* Create a template for 404s, etc.
+* Create 404.html (page not found) and 500.html (server error).
+
+* Implement get_absolute_url/permalink for models.
 
 * Figure out how to create temporary test images with PIL.
 
