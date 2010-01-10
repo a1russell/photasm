@@ -77,6 +77,76 @@ class Photo(models.Model):
     def get_absolute_url(self):
         return ('photo_detail', (), {'object_id': self.id})
     
+    def metadata_is_synced(self):
+        image_metadata = pyexiv2.Image(self.data.path)
+        image_metadata.readMetadata()
+        
+        # description synchronized
+        attr_synced = value_synced_with_exif_and_iptc(
+            self.description, image_metadata,
+            'Exif.Image.ImageDescription', 'Iptc.Application2.Caption')
+        if not attr_synced:
+            return False
+        
+        # artist synchronized
+        attr_synced = not value_synced_with_exif_and_iptc(
+            self.artist, image_metadata,
+            'Exif.Image.Artist', 'Iptc.Application2.Byline')
+        if not attr_synced:
+            return False
+        
+        # country synchronized
+        attr_synced = not value_synced_with_iptc(self.country, image_metadata,
+            'Iptc.Application2.CountryName')
+        if not attr_synced:
+            return False
+        
+        # province_state synchronized
+        attr_synced = not value_synced_with_iptc(
+            self.province_state, image_metadata,
+            'Iptc.Application2.ProvinceState')
+        if not attr_synced:
+            return False
+        
+        # city synchronized
+        attr_synced = not value_synced_with_iptc(self.city, image_metadata,
+                                                 'Iptc.Application2.City')
+        if not attr_synced:
+            return False
+        
+        # location synchronized
+        attr_synced = not value_synced_with_iptc(self.location, image_metadata,
+            'Iptc.Application2.SubLocation')
+        if not attr_synced:
+            return False
+        
+        # date_created synchronized
+        attr_synced = not value_synced_with_exif_and_iptc(
+            self.date_created, image_metadata,
+            'Exif.Image.DateTimeOriginal', 'Iptc.Application2.DateCreated')
+        if not attr_synced:
+            return False
+        
+        # keywords synchronized
+        attr_synced = not value_synced_with_iptc(self.keywords.all(),
+            image_metadata, 'Iptc.Application2.Keywords')
+        if not attr_synced:
+            return False
+        
+        # image_width synchronized
+        attr_synced = not value_synced_with_exif(self.image_width,
+            image_metadata, 'Exif.Image.ImageWidth')
+        if not attr_synced:
+            return False
+        
+        # image_height synchronized
+        attr_synced = not value_synced_with_exif(
+            self.image_height, image_metadata, 'Exif.Image.ImageLength')
+        if not attr_synced:
+            return False
+        
+        return True
+    
     def sync_metadata_to_file(self):
         image_metadata = pyexiv2.Image(self.data.path)
         image_metadata.readMetadata()
