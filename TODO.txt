@@ -1,9 +1,13 @@
 TODO:
 =====
 
-* Write docstrings, including for the model properties.
+* Fix date_created syncing. Perhaps datetime methods to image_metadata.py.
 
-* Fix date_created syncing.
+* Move implementation of synchronization from Photo to image_metadata.py.
+
+* In PhotoAdmin.save_model, check if obj.data changes, not just change param.
+
+* Write docstrings, including for the model properties.
 
 * Create 404.html (page not found) and 500.html (server error).
 
@@ -20,3 +24,4 @@ TODO:
 
 * Implement inline formset for PhotoTags.
 
+* Implement ZIP uploading for albums. Experiment with multi-file forms.
