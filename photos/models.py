@@ -7,6 +7,13 @@ from photasm.photos.image_metadata import *
 
 
 class Album(models.Model):
+    """\
+    A photograph album.
+    
+    This is a collection of Photo objects.  It is intended to be a way for
+    the user to organize his photographs in a fashion reflecting real life.
+    
+    """
     owner = models.ForeignKey(User)
     name = models.CharField(max_length=64)
 
@@ -15,6 +22,13 @@ class Album(models.Model):
 
 
 class PhotoTag(models.Model):
+    """\
+    A keyword or tag related to a photograph, provided by the user.
+    
+    Different photographs that are related in subject matter should share a
+    common PhotoTag.
+    
+    """
     name = models.CharField(max_length=64)
 
     def __unicode__(self):
@@ -22,46 +36,143 @@ class PhotoTag(models.Model):
 
 
 class Photo(models.Model):
+    """\
+    A photograph.
+    
+    Each Photo object belongs to one owner and one album. Certain image
+    metadata fields are synchronized between the database and the filesystem.
+    
+    """
     owner = models.ForeignKey(User)
 
     data = models.ImageField(upload_to="photos/%Y/%m/%d",
                              height_field="image_height",
                              width_field="image_width")
 
-    # Exif ImageDescription, IPTC Caption 
     description = models.CharField(blank=True, max_length=2000)
+    """\
+    The title of the image.
+    
+    This may be a comment such as "1988 company picnic" or the like.
+    
+    Corresponding image metadata keys:
+        Exif.Image.ImageDescription
+        Iptc.Application2.Caption
+    
+    """
 
     # Exif Artist, IPTC Byline
     artist = models.CharField(blank=True, max_length=32)
+    """\
+    Records the name of the camera owner, photographer or image creator.
+    
+    The detailed format is not specified, but it is recommended that the
+    information be written as in the example below for ease of
+    interoperability. When the field is left blank, it is treated as unknown.
+    
+    Ex.:
+        "Camera owner, John Smith; Photographer, Michael Brown;
+        Image creator, Ken James"
+    
+    Corresponding image metadata keys:
+        Exif.Image.Artist
+        Iptc.Application2.Byline
+    
+    """
 
     # IPTC CountryName
     country = models.CharField("country name", blank=True, max_length=64)
+    """\
+    Full name of the country the content is focusing on.
+    
+    A list of country names can be obtained at the following URL:
+        http://www.iso.org/iso/english_country_names_and_code_elements
+    
+    Corresponding image metadata keys:
+        Iptc.Application2.CountryName
+    
+    """
 
     # IPTC ProvinceState
     province_state = models.CharField("province/state", blank=True,
                                       max_length=32)
+    """\
+    Name of the state or province of object data origin.
+    
+    Corresponding image metadata keys:
+        Iptc.Application2.ProvinceState
+    
+    """
 
     # IPTC City
     city = models.CharField(blank=True, max_length=32)
+    """\
+    Name of the city of object data origin.
+    
+    Corresponding image metadata keys:
+        Iptc.Application2.City
+    
+    """
 
     # IPTC SubLocation
     location = models.CharField(blank=True, max_length=32,
                                 help_text="location within a city")
+    """\
+    The location within a city from which the object data originates.
+    
+    Corresponding image metadata keys:
+        Iptc.Application2.SubLocation
+    
+    """
 
-    # Exif DateTimeOriginal, IPTC DateCreated
-    # date photo was taken
     date_created = models.DateField(null=True, blank=True,
-                                    help_text="date original image data "\
-                                              "was generated")
+                                    help_text="date photo was taken")
+    """\
+    Date the photo was taken.
+    
+    Technically, the date the original image data was generated. Designates
+    the date the intellectual content of the object data was created rather
+    than the date of the creation of the physical representation.
+    
+    Corresponding image metadata keys:
+        Exif.Image.DateTimeOriginal
+        Iptc.Application2.DateCreated
+        Iptc.Application2.TimeCreated
+    
+    """
 
     # IPTC Keywords
     keywords = models.ManyToManyField(PhotoTag, null=True, blank=True)
+    """\
+    Specific information retrieval words.
+    
+    It is expected that a provider of various types of data that are related
+    in subject matter uses the same keyword.
+    
+    Corresponding image metadata keys:
+        Iptc.Application2.Keywords
+    
+    """
 
     # Exif ImageWidth
     image_width = models.IntegerField(editable=False)
+    """\
+    Image width.
+    
+    Corresponding image metadata keys:
+        Exif.Image.ImageWidth
+    
+    """
 
     # Exif ImageLength
     image_height = models.IntegerField(editable=False)
+    """\
+    Image height.
+    
+    Corresponding image metadata keys:
+        Exif.Image.ImageLength
+    
+    """
 
     album = models.ForeignKey(Album)
 
