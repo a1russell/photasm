@@ -1,4 +1,5 @@
 from django.contrib.auth.models import User
+from django.core.exceptions import ObjectDoesNotExist
 from django.core.files.storage import default_storage
 from django.db import models
 from django.forms import ModelForm
@@ -125,8 +126,8 @@ class Photo(models.Model):
     
     """
 
-    date_created = models.DateField(null=True, blank=True,
-                                    help_text="date photo was taken")
+    date_created = models.DateTimeField(null=True, blank=True,
+                                        help_text="date photo was taken")
     """\
     Date the photo was taken.
     
@@ -196,6 +197,27 @@ class Photo(models.Model):
     def get_absolute_url(self):
         return ('photo_detail', (), {'object_id': self.id})
     
+    def get_keywords(self):
+        keywords = []
+        for keyword in self.keywords.all():
+            keywords.append(keyword.name)
+        return keywords
+    
+    def set_keywords(self, keywords):
+        if not keywords:
+            return
+        
+        self.keywords.clear()
+        for keyword in keywords:
+            try:
+                photo_tag = PhotoTag.objects.get(name__iexact=keyword)
+            except ObjectDoesNotExist:
+                self.keywords.create(name=keyword)
+                continue
+            except PhotoTag.MultipleObjectsReturned:
+                continue
+            self.keywords.add(photo_tag)
+    
     def sync_metadata_to_file(self):
         image_metadata = pyexiv2.Image(self.data.path)
         image_metadata.readMetadata()
@@ -235,7 +257,7 @@ class Photo(models.Model):
                                           or mod
         
         # sync keywords
-        mod = sync_value_to_iptc(self.keywords.all(), image_metadata,
+        mod = sync_value_to_iptc(self.get_keywords(), image_metadata,
                                  'Iptc.Application2.Keywords') or mod
         
         # sync image_width
@@ -340,10 +362,7 @@ class Photo(models.Model):
         mod_instance = mod_attr or mod_instance
         if ('Iptc.Application2.Keywords' in image_metadata.iptcKeys() and
             mod_attr):
-            for keyword in image_metadata['Iptc.Application2.Keywords']:
-                continue
-                # TODO: Implement this. Handle PhotoTag objects.
-                self.keywords.add(keyword)
+            self.set_keywords(image_metadata['Iptc.Application2.Keywords'])
         
         # sync image_width
         mod_attr = not value_synced_with_exif(self.image_width, image_metadata,

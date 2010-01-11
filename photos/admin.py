@@ -6,6 +6,7 @@ from photasm.photos.models import Album, Photo, PhotoTag
 class PhotoAdmin(admin.ModelAdmin):
     def save_model(self, request, obj, form, change):
         obj.save()
+        form.save_m2m()
         
         # object is being added
         if change is False:
@@ -47,6 +48,7 @@ class PhotoAdmin(admin.ModelAdmin):
                 sync_back = True
             if keywords:
                 obj.keywords = keywords
+                form.save_m2m()
                 sync_back = True
 
             if sync_back is True:
