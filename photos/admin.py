@@ -17,7 +17,7 @@ class PhotoAdmin(admin.ModelAdmin):
             province_state = obj.province_state
             city = obj.city
             location = obj.location
-            date_created = obj.date_created
+            time_created = obj.time_created
             keywords = obj.keywords.all()
 
             obj.sync_metadata_from_file()
@@ -43,8 +43,8 @@ class PhotoAdmin(admin.ModelAdmin):
             if location:
                 obj.location = location
                 sync_back = True
-            if date_created:
-                obj.date_created = date_created
+            if time_created:
+                obj.time_created = time_created
                 sync_back = True
             if keywords:
                 obj.keywords = keywords

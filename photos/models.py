@@ -126,7 +126,7 @@ class Photo(models.Model):
     
     """
 
-    date_created = models.DateTimeField(null=True, blank=True,
+    time_created = models.DateTimeField(null=True, blank=True,
                                         help_text="date photo was taken")
     """\
     Date the photo was taken.
@@ -136,7 +136,7 @@ class Photo(models.Model):
     than the date of the creation of the physical representation.
     
     Corresponding image metadata keys:
-        Exif.Image.DateTimeOriginal
+        Exif.Photo.DateTimeOriginal
         Iptc.Application2.DateCreated
         Iptc.Application2.TimeCreated
     
@@ -250,11 +250,11 @@ class Photo(models.Model):
         mod = sync_value_to_iptc(self.location, image_metadata,
                                  'Iptc.Application2.SubLocation') or mod
         
-        # sync date_created
-        mod = sync_value_to_exif_and_iptc(self.date_created, image_metadata,
-                                          'Exif.Image.DateTimeOriginal',
-                                          'Iptc.Application2.DateCreated') \
-                                          or mod
+        # sync time_created
+        mod = sync_datetime_to_exif_and_iptc(self.time_created,
+            image_metadata, 'Exif.Photo.DateTimeOriginal',
+            'Iptc.Application2.DateCreated', 'Iptc.Application2.TimeCreated')\
+            or mod
         
         # sync keywords
         mod = sync_value_to_iptc(self.get_keywords(), image_metadata,
@@ -347,14 +347,17 @@ class Photo(models.Model):
                 value = str()
             self.location = value
         
-        # sync date_created
-        mod_attr = not value_synced_with_exif_and_iptc(
-            self.date_created, image_metadata,
-            'Exif.Image.DateTimeOriginal', 'Iptc.Application2.DateCreated')
+        # sync time_created
+        mod_attr = not datetime_synced_with_exif_and_iptc(
+            self.time_created, image_metadata,
+            'Exif.Photo.DateTimeOriginal', 'Iptc.Application2.DateCreated',
+            'Iptc.Application2.TimeCreated')
         mod_instance = mod_attr or mod_instance
         if mod_attr:
-            self.date_created = read_value_from_exif_and_iptc(image_metadata,
-                'Exif.Image.DateTimeOriginal', 'Iptc.Application2.DateCreated')
+            self.time_created = read_datetime_from_exif_and_iptc(
+                image_metadata, 'Exif.Photo.DateTimeOriginal',
+                'Iptc.Application2.DateCreated',
+                'Iptc.Application2.TimeCreated')
         
         # sync keywords
         mod_attr = not value_synced_with_iptc(self.keywords.all(),

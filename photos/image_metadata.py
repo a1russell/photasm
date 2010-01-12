@@ -1,3 +1,5 @@
+from datetime import datetime
+
 import pyexiv2
 
 
@@ -42,7 +44,7 @@ def _del_img_key(image, metadata_key):
     # https://bugs.launchpad.net/pyexiv2/+bug/343403
     try:
         del image[metadata_key]
-    except KeyError:
+    except (KeyError, TypeError):
         pass
 
 
@@ -105,6 +107,34 @@ def value_synced_with_exif_and_iptc(value, image, exif_key, iptc_key):
     if iptc_value is None:
         return value == exif_value
     return value == exif_value == iptc_value
+
+
+def datetime_synced_with_exif_and_iptc(datetime_value, image,
+                                       exif_datetime_key,
+                                       iptc_date_key, iptc_time_key):
+    require_pyexiv2_obj(image, 'image')
+    exif_datetime_value = None
+    iptc_date_value = None
+    iptc_time_value = None
+    iptc_datetime_value = None
+    
+    if exif_datetime_key in image.exifKeys():
+        exif_datetime_value = image[exif_datetime_key]
+    if iptc_date_key in image.iptcKeys():
+        iptc_date_value = image[iptc_date_key]
+    if iptc_time_key in image.iptcKeys():
+        iptc_time_value = image[iptc_time_key]
+        iptc_time_value = iptc_time_value.replace(tzinfo=None)
+    
+    if iptc_date_value and iptc_time_value:
+        iptc_datetime_value = datetime.combine(iptc_date_value,
+                                               iptc_time_value)
+    
+    if exif_datetime_value is None:
+        return datetime_value == iptc_datetime_value
+    if iptc_datetime_value is None:
+        return datetime_value == exif_datetime_value
+    return datetime_value == exif_datetime_value == iptc_datetime_value
 
 
 def _sync_metadata_value_to_file(value, image, metadata_key, sync_check_func):
@@ -173,6 +203,28 @@ def sync_value_to_exif_and_iptc(value, image, exif_key, iptc_key):
     return mod
 
 
+def sync_datetime_to_exif_and_iptc(datetime_value, image, exif_datetime_key,
+                                   iptc_date_key, iptc_time_key):
+    require_pyexiv2_obj(image, 'image')
+    
+    mod = not datetime_synced_with_exif_and_iptc(datetime_value, image,
+                                                 exif_datetime_key,
+                                                 iptc_date_key, iptc_time_key)
+    if mod:
+        if datetime_value is not None:
+            image[exif_datetime_key] = datetime_value
+        else:
+            _del_img_key(image, exif_datetime_key)
+        
+        # Delete IPTC keys.
+        if iptc_date_key in image.iptcKeys():
+            _del_img_key(image, iptc_date_key)
+        if iptc_time_key in image.iptcKeys():
+            _del_img_key(image, iptc_time_key)
+    
+    return mod
+
+
 def read_value_from_exif_and_iptc(image, exif_key, iptc_key):
     require_pyexiv2_obj(image, 'image')
     exif_value = None
@@ -186,3 +238,27 @@ def read_value_from_exif_and_iptc(image, exif_key, iptc_key):
     if exif_value is None:
         return iptc_value
     return exif_value
+
+
+def read_datetime_from_exif_and_iptc(image, exif_datetime_key,
+                                     iptc_date_key, iptc_time_key):
+    require_pyexiv2_obj(image, 'image')
+    exif_datetime_value = None
+    iptc_date_value = None
+    iptc_time_value = None
+    iptc_datetime_value = None
+    
+    if exif_datetime_key in image.exifKeys():
+        exif_datetime_value = image[exif_datetime_key]
+    if iptc_date_key in image.iptcKeys():
+        iptc_date_value = image[iptc_date_key]
+    if iptc_time_key in image.iptcKeys():
+        iptc_time_value = image[iptc_time_key]
+        iptc_time_value = iptc_time_value.replace(tzinfo=None)
+    
+    if exif_datetime_value is None:
+        if iptc_date_value and iptc_time_value:
+            iptc_datetime_value = datetime.combine(iptc_date_value,
+                                                   iptc_time_value)
+        return iptc_datetime_value
+    return exif_datetime_value

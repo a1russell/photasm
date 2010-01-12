@@ -1,9 +1,8 @@
 TODO:
 =====
 
-* Fix date_created syncing. Perhaps datetime methods to image_metadata.py.
-
-* Move implementation of synchronization from Photo to image_metadata.py.
+* Exif.Photo.PixelXResolution, Exif.Photo.PixelYResolution for JPG
+  rather than Exif.Image.ImageHeight and Exif.Image.ImageLength.
 
 * In PhotoAdmin.save_model, check if obj.data changes, not just change param.
 
