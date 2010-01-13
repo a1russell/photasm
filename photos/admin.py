@@ -6,7 +6,12 @@ from photasm.photos.models import Album, Photo, PhotoTag
 class PhotoAdmin(admin.ModelAdmin):
     def save_model(self, request, obj, form, change):
         photo_data = form.cleaned_data['data']
-        if photo_data is not None and photo_data.content_type == "image/jpeg":
+        photo_data_content_type = None
+        try:
+            photo_data_content_type = photo_data.content_type
+        except AttributeError:
+            pass
+        if photo_data_content_type == "image/jpeg":
             obj.is_jpeg = True
         
         obj.save()

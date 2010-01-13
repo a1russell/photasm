@@ -22,14 +22,22 @@ def photo_upload(request):
 
         if form.is_valid():
             photo_data = form.cleaned_data['data']
+            photo_data_content_type = None
+            
             new_photo = form.save(commit=False)
             new_photo.owner = request.user
-            if (photo_data is not None and
-                photo_data.content_type == "image/jpeg"):
+            
+            try:
+                photo_data_content_type = photo_data.content_type
+            except AttributeError:
+                pass
+            if photo_data_content_type == "image/jpeg":
                 new_photo.is_jpeg = True
+            
             new_photo.save()
             form.save_m2m()
             new_photo.sync_metadata_from_file()
+            
             request.user.message_set.create(
                 message="Your photograph was added successfully.")
             return HttpResponseRedirect(reverse("photo_detail",
