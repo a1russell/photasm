@@ -3,6 +3,18 @@ from datetime import datetime
 import pyexiv2
 
 
+def get_image_width_key(img_is_jpeg):
+    if img_is_jpeg:
+        return 'Exif.Photo.PixelXDimension'
+    return 'Exif.Image.ImageWidth'
+
+
+def get_image_height_key(img_is_jpeg):
+    if img_is_jpeg:
+        return 'Exif.Photo.PixelYDimension'
+    return 'Exif.Image.ImageLength'
+
+
 def require_pyexiv2_obj(obj, obj_name):
     is_pyexiv2_obj = True
     if (not (hasattr(obj, '__getitem__') and callable(obj.__getitem__) and

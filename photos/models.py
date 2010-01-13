@@ -62,7 +62,6 @@ class Photo(models.Model):
     
     """
 
-    # Exif Artist, IPTC Byline
     artist = models.CharField(blank=True, max_length=32)
     """\
     Records the name of the camera owner, photographer or image creator.
@@ -81,7 +80,6 @@ class Photo(models.Model):
     
     """
 
-    # IPTC CountryName
     country = models.CharField("country name", blank=True, max_length=64)
     """\
     Full name of the country the content is focusing on.
@@ -94,7 +92,6 @@ class Photo(models.Model):
     
     """
 
-    # IPTC ProvinceState
     province_state = models.CharField("province/state", blank=True,
                                       max_length=32)
     """\
@@ -105,7 +102,6 @@ class Photo(models.Model):
     
     """
 
-    # IPTC City
     city = models.CharField(blank=True, max_length=32)
     """\
     Name of the city of object data origin.
@@ -115,7 +111,6 @@ class Photo(models.Model):
     
     """
 
-    # IPTC SubLocation
     location = models.CharField(blank=True, max_length=32,
                                 help_text="location within a city")
     """\
@@ -142,7 +137,6 @@ class Photo(models.Model):
     
     """
 
-    # IPTC Keywords
     keywords = models.ManyToManyField(PhotoTag, null=True, blank=True)
     """\
     Specific information retrieval words.
@@ -155,25 +149,27 @@ class Photo(models.Model):
     
     """
 
-    # Exif ImageWidth
     image_width = models.IntegerField(editable=False)
     """\
     Image width.
     
     Corresponding image metadata keys:
-        Exif.Image.ImageWidth
+        Exif.Image.ImageWidth (if not JPEG)
+        Exif.Photo.PixelXDimension (if JPEG)
     
     """
 
-    # Exif ImageLength
     image_height = models.IntegerField(editable=False)
     """\
     Image height.
     
     Corresponding image metadata keys:
-        Exif.Image.ImageLength
+        Exif.Image.ImageLength (if not JPEG)
+        Exif.Photo.PixelYDimension (if JPEG)
     
     """
+    
+    is_jpeg = models.BooleanField(default=False, editable=False)
 
     album = models.ForeignKey(Album)
 
@@ -262,11 +258,11 @@ class Photo(models.Model):
         
         # sync image_width
         mod = sync_value_to_exif(self.image_width, image_metadata,
-                                 'Exif.Image.ImageWidth') or mod
+                                 get_image_width_key(self.is_jpeg)) or mod
         
         # sync image_height
         mod = sync_value_to_exif(self.image_height, image_metadata,
-                                 'Exif.Image.ImageLength') or mod
+                                 get_image_height_key(self.is_jpeg)) or mod
         
         if mod:
             image_metadata.writeMetadata()
@@ -368,18 +364,20 @@ class Photo(models.Model):
             self.set_keywords(image_metadata['Iptc.Application2.Keywords'])
         
         # sync image_width
+        image_width_key = get_image_width_key(self.is_jpeg)
         mod_attr = not value_synced_with_exif(self.image_width, image_metadata,
-                                              'Exif.Image.ImageWidth')
+                                              image_width_key)
         mod_instance = mod_attr or mod_instance
-        if 'Exif.Image.ImageWidth' in image_metadata.exifKeys() and mod_attr:
-            self.image_width = image_metadata['Exif.Image.ImageWidth']
+        if image_width_key in image_metadata.exifKeys() and mod_attr:
+            self.image_width = image_metadata[image_width_key]
         
         # sync image_height
+        image_height_key = get_image_height_key(self.is_jpeg)
         mod_attr = not value_synced_with_exif(
-            self.image_height, image_metadata, 'Exif.Image.ImageLength')
+            self.image_height, image_metadata, image_height_key)
         mod_instance = mod_attr or mod_instance
-        if 'Exif.Image.ImageLength' in image_metadata.exifKeys() and mod_attr:
-            self.image_height = image_metadata['Exif.Image.ImageLength']
+        if image_height_key in image_metadata.exifKeys() and mod_attr:
+            self.image_height = image_metadata[image_height_key]
         
         if mod_instance and commit:
             self.save()

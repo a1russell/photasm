@@ -1,8 +1,7 @@
 TODO:
 =====
 
-* Exif.Photo.PixelXResolution, Exif.Photo.PixelYResolution for JPG
-  rather than Exif.Image.ImageHeight and Exif.Image.ImageLength.
+* Check for IOError on writeMetadata() & Image(...).
 
 * In PhotoAdmin.save_model, check if obj.data changes, not just change param.
 

@@ -21,8 +21,12 @@ def photo_upload(request):
         form = PhotoUploadForm(request.POST, request.FILES)
 
         if form.is_valid():
+            photo_data = form.cleaned_data['data']
             new_photo = form.save(commit=False)
             new_photo.owner = request.user
+            if (photo_data is not None and
+                photo_data.content_type == "image/jpeg"):
+                new_photo.is_jpeg = True
             new_photo.save()
             form.save_m2m()
             new_photo.sync_metadata_from_file()
