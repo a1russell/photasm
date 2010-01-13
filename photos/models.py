@@ -170,6 +170,8 @@ class Photo(models.Model):
     """
     
     is_jpeg = models.BooleanField(default=False, editable=False)
+    
+    metadata_sync_enabled = models.BooleanField(default=True)
 
     album = models.ForeignKey(Album)
 
@@ -215,8 +217,16 @@ class Photo(models.Model):
             self.keywords.add(photo_tag)
     
     def sync_metadata_to_file(self):
-        image_metadata = pyexiv2.Image(self.data.path)
-        image_metadata.readMetadata()
+        if not self.metadata_sync_enabled:
+            return False
+        
+        try:
+            image_metadata = pyexiv2.Image(self.data.path)
+            image_metadata.readMetadata()
+        except IOError:
+            self.metadata_sync_enabled = False
+            self.save()
+            return False
         
         mod = False # whether or not file actually needs written to
         
@@ -265,13 +275,26 @@ class Photo(models.Model):
                                  get_image_height_key(self.is_jpeg)) or mod
         
         if mod:
-            image_metadata.writeMetadata()
+            try:
+                image_metadata.writeMetadata()
+            except IOError:
+                self.metadata_sync_enabled = False
+                self.save()
+                return False
         
         return mod
     
     def sync_metadata_from_file(self, commit=True):
-        image_metadata = pyexiv2.Image(self.data.path)
-        image_metadata.readMetadata()
+        if not self.metadata_sync_enabled:
+            return False
+        
+        try:
+            image_metadata = pyexiv2.Image(self.data.path)
+            image_metadata.readMetadata()
+        except IOError:
+            self.metadata_sync_enabled = False
+            self.save()
+            return False
         
         mod_instance = False  # whether or not database needs written to
         
