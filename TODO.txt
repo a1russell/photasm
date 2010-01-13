@@ -7,8 +7,6 @@ TODO:
 
 * Create 404.html (page not found) and 500.html (server error).
 
-* Implement get_absolute_url/permalink for models.
-
 * Figure out how to create temporary test images with PIL.
 
 * In test.py::
@@ -18,6 +16,6 @@ TODO:
         'image_metadata': image_metadata,
     }
 
-* Implement inline formset for PhotoTags.
+* Implement inline formset for PhotoTags and Albums on the Photo form.
 
 * Implement ZIP uploading for albums. Experiment with multi-file forms.
