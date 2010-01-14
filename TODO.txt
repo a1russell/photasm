@@ -1,8 +1,6 @@
 TODO:
 =====
 
-* In PhotoAdmin.save_model, check if obj.data changes, not just change param.
-
 * Write docstrings, including for the model properties.
 
 * Create 404.html (page not found) and 500.html (server error).

@@ -184,8 +184,8 @@ class Photo(models.Model):
     def save(self, *args, **kwargs):
         try:
             old_obj = Photo.objects.get(pk=self.pk)
-            if old_obj.image.path != self.image.path:
-                path = old_obj.image.path
+            if old_obj.data.path != self.data.path:
+                path = old_obj.data.path
                 default_storage.delete(path)
         except:
             pass

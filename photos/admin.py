@@ -5,6 +5,14 @@ from photasm.photos.models import Album, Photo, PhotoTag
 
 class PhotoAdmin(admin.ModelAdmin):
     def save_model(self, request, obj, form, change):
+        image_change = False
+        try:
+            old_obj = Photo.objects.get(pk=obj.pk)
+            if old_obj.data.path != obj.data.path:
+                image_change = True
+        except:
+            pass
+        
         photo_data = form.cleaned_data['data']
         photo_data_content_type = None
         try:
@@ -17,8 +25,8 @@ class PhotoAdmin(admin.ModelAdmin):
         obj.save()
         form.save_m2m()
         
-        # object is being added
-        if change is False:
+        # object is being added or image field is being modified
+        if change is False or image_change is True:
             # Remember user-entered fields.
             description = obj.description
             artist = obj.artist
