@@ -183,6 +183,8 @@ class Photo(models.Model):
     
     def save(self, *args, **kwargs):
         try:
+            # Check if the data property has changed.
+            # If so, delete the old image on the filesystem.
             old_obj = Photo.objects.get(pk=self.pk)
             if old_obj.data.path != self.data.path:
                 path = old_obj.data.path
@@ -196,12 +198,23 @@ class Photo(models.Model):
         return ('photo_detail', (), {'object_id': self.id})
     
     def get_keywords(self):
+        """\
+        Returns the photograph keywords as a list of strings.
+        
+        """
         keywords = []
         for keyword in self.keywords.all():
             keywords.append(keyword.name)
         return keywords
     
     def set_keywords(self, keywords):
+        """\
+        Sets the keywords from a list of strings.
+        
+        Parameters:
+        keywords -- the list of keywords to set
+        
+        """
         if not keywords:
             return
         
@@ -217,6 +230,18 @@ class Photo(models.Model):
             self.keywords.add(photo_tag)
     
     def sync_metadata_to_file(self):
+        """\
+        Synchronizes the image metadata from the object to the filesystem.
+        
+        This stores certain properties of the object to the image file
+        itself as Exif and/or IPTC tags, allowing the information to be
+        portable outside of this application. Metadata is only actually
+        written to the filesystem if the values do not match up, however.
+        
+        Returns True if metadata needed to be written to the file;
+        False otherwise.
+        
+        """
         if not self.metadata_sync_enabled:
             return False
         
@@ -285,6 +310,18 @@ class Photo(models.Model):
         return mod
     
     def sync_metadata_from_file(self, commit=True):
+        """\
+        Synchronizes the image metadata from the filesystem to the object.
+        
+        This reads certain properties of the object from Exif and/or IPTC tags 
+        in the image file itself, allowing the information to be portable
+        from outside of this application. Metadata is only actually
+        written to the database if the values do not match up, however.
+        
+        Returns True if metadata needed to be written to the database;
+        False otherwise.
+        
+        """
         if not self.metadata_sync_enabled:
             return False
         
@@ -409,12 +446,30 @@ class Photo(models.Model):
 
 
 class PhotoUploadForm(ModelForm):
+    """\
+    Form presented to the user for uploading a Photo.
+    
+    This form does not include any of the image metadata properties since
+    they should be read from the file itself upon upload. This eliminates
+    the possibility of a user overwriting metadata stored in the file.
+    
+    """
     class Meta:
         model = Photo
         fields = ('album', 'data',)
 
 
 class PhotoEditForm(ModelForm):
+    """\
+    Form presented to the user for editing a Photo.
+    
+    This form does not allow the user to change the actual image file
+    associated with the Photo object, as the two are tightly coupled.
+    Since image metadata should have already been read from the file upon
+    upload, changes to the values in this form should be synchronized back
+    to the image on the filesystem.
+    
+    """
     class Meta:
         model = Photo
         exclude = ('owner', 'data',)

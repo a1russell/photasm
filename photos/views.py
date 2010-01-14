@@ -17,6 +17,17 @@ def photo_detail(request, queryset, *args, **kwargs):
 
 @login_required
 def photo_upload(request):
+    """\
+    Uploads a Photo.
+    
+    This reads the image metadata from the file on the filesystem into the
+    corresponding properties in the Photo object.
+    
+    It is assumed that no Photo properties associated with the image metadata
+    are submitted, as this would overwrite the metadata in the file without
+    informing the user of previous values.
+    
+    """
     if request.method == 'POST':
         form = PhotoUploadForm(request.POST, request.FILES)
 
@@ -52,6 +63,17 @@ def photo_upload(request):
 
 @login_required
 def photo_edit(request, object_id):
+    """\
+    Edits a Photo.
+    
+    This writes the image metadata from the appropriate properties back to
+    the file on the filesystem.
+    
+    It is assumed that the image data associated with the Photo is not
+    submitted to this view, as this would most likely write metadata to the
+    newly submitted image that was associated to the old one.
+    
+    """
     if request.method == 'POST':
         object = get_object_or_404(Photo, pk=object_id)
         form = PhotoEditForm(request.POST, instance=object)

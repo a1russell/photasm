@@ -4,18 +4,40 @@ import pyexiv2
 
 
 def get_image_width_key(img_is_jpeg):
+    """\
+    Returns appropriate Exif key related to an image's X-resolution (width).
+    
+    Parameters:
+    img_is_jpeg -- whether or not the image is a JPEG
+    
+    """
     if img_is_jpeg:
         return 'Exif.Photo.PixelXDimension'
     return 'Exif.Image.ImageWidth'
 
 
 def get_image_height_key(img_is_jpeg):
+    """\
+    Returns appropriate Exif key related to an image's Y-resolution (height).
+    
+    Parameters:
+    img_is_jpeg -- whether or not the image is a JPEG
+    
+    """
     if img_is_jpeg:
         return 'Exif.Photo.PixelYDimension'
     return 'Exif.Image.ImageLength'
 
 
 def require_pyexiv2_obj(obj, obj_name):
+    """\
+    Ensures that a given object is a valid pyexiv2.Image.
+    
+    Parameters:
+    obj -- object to type-check
+    obj_name -- variable name of the object 
+    
+    """
     is_pyexiv2_obj = True
     if (not (hasattr(obj, '__getitem__') and callable(obj.__getitem__) and
         hasattr(obj, '__setitem__') and callable(obj.__setitem__) and
@@ -30,6 +52,18 @@ def require_pyexiv2_obj(obj, obj_name):
 
 
 def _is_iter(obj):
+    """\
+    Checks to see if an object is iterable.
+    
+    Iterable types include lists, sets, etc. In this case, strings do not
+    count.
+    
+    Returns True if the object is iterable; False otherwise.
+    
+    Parameters:
+    obj -- object to type-check
+    
+    """
     try:
         iter(obj)
     except TypeError:
@@ -41,6 +75,17 @@ def _is_iter(obj):
 
 
 def _collapse_empty_to_none(value):
+    """\
+    Collapses an value of zero length to None.
+    
+    In other words, this function takes a value and tries to see if it has a
+    length. If it does, and that length is zero, this function returns None.
+    Otherwise, it returns the original value.
+    
+    Parameters:
+    value -- value for which to collapse to None if zero-length
+    
+    """
     try:
         value_length = len(value)
     except TypeError:
@@ -52,6 +97,13 @@ def _collapse_empty_to_none(value):
 
 
 def _del_img_key(image, metadata_key):
+    """\
+    Deletes an image metadata tag for a specified key.
+    
+    Parameters:
+    metadata_key -- key of the metadata tag to delete
+    
+    """
     # Workaround for a bug in pyexiv2:
     # https://bugs.launchpad.net/pyexiv2/+bug/343403
     try:
@@ -61,6 +113,19 @@ def _del_img_key(image, metadata_key):
 
 
 def _metadata_value_synced_with_file(value, image, metadata_key, keys_method):
+    """\
+    Determines whether a value is in sync with metadata in an image file.
+    
+    Returns True if the metadata is sychronized; False otherwise.
+    
+    Parameters:
+    value -- value of the metadata property to check
+    image -- pyexiv2.Image object containing metadata to compare against
+    metadata_key -- key of the metadata tag for which to compare
+    keys_method -- method to retrieve appropriate list of keys that could
+                   contain metadata_key
+    
+    """
     require_pyexiv2_obj(image, 'image')
     metadata_value = None
     
@@ -82,16 +147,52 @@ def _metadata_value_synced_with_file(value, image, metadata_key, keys_method):
 
 
 def value_synced_with_exif(value, image, metadata_key):
+    """\
+    Determines whether a value is in sync with Exif metadata in an image file.
+    
+    Returns True if the metadata is sychronized; False otherwise.
+    
+    Parameters:
+    value -- value of the metadata property to check
+    image -- pyexiv2.Image object containing metadata to compare against
+    metadata_key -- key of the Exif metadata tag for which to compare
+    
+    """
     return _metadata_value_synced_with_file(value, image, metadata_key,
                                             pyexiv2.Image.exifKeys)
 
 
 def value_synced_with_iptc(value, image, metadata_key):
+    """\
+    Determines whether a value is in sync with IPTC metadata in an image file.
+    
+    Returns True if the metadata is sychronized; False otherwise.
+    
+    Parameters:
+    value -- value of the metadata property to check
+    image -- pyexiv2.Image object containing metadata to compare against
+    metadata_key -- key of the IPTC metadata tag for which to compare
+    
+    """
     return _metadata_value_synced_with_file(value, image, metadata_key,
                                             pyexiv2.Image.iptcKeys)
 
 
 def value_synced_with_exif_and_iptc(value, image, exif_key, iptc_key):
+    """\
+    Determines whether a value is in sync with metadata in an image file.
+    
+    Both Exif and IPTC tags are checked.
+    
+    Returns True if the metadata is sychronized; False otherwise.
+    
+    Parameters:
+    value -- value of the metadata property to check
+    image -- pyexiv2.Image object containing metadata to compare against
+    exif_key -- key of the Exif metadata tag for which to compare
+    iptc_key -- key of the IPTC metadata tag for which to compare
+    
+    """
     require_pyexiv2_obj(image, 'image')
     exif_value = None
     iptc_value = None
@@ -124,6 +225,23 @@ def value_synced_with_exif_and_iptc(value, image, exif_key, iptc_key):
 def datetime_synced_with_exif_and_iptc(datetime_value, image,
                                        exif_datetime_key,
                                        iptc_date_key, iptc_time_key):
+    """\
+    Determines whether a date/time value is in sync with image file metadata.
+    
+    Both Exif and IPTC tags are checked. Note that Exif stores combined
+    date/time values in a single tag, while IPTC separates the date value into
+    one tag and the time value into another.
+    
+    Returns True if the metadata is sychronized; False otherwise.
+    
+    Parameters:
+    datetime_value -- date/time value of the metadata property to check
+    image -- pyexiv2.Image object containing metadata to compare against
+    exif_datetime_key -- key of Exif date/time metadata to compare against
+    iptc_date_key -- key of the IPTC date metadata tag to compare against
+    iptc_time_key -- key of the IPTC time metadata tag to compare against
+    
+    """
     require_pyexiv2_obj(image, 'image')
     exif_datetime_value = None
     iptc_date_value = None
@@ -150,6 +268,22 @@ def datetime_synced_with_exif_and_iptc(datetime_value, image,
 
 
 def _sync_metadata_value_to_file(value, image, metadata_key, sync_check_func):
+    """\
+    Writes image metadata to a file.
+    
+    Metadata is only actually written to the files if the values are
+    out of sync.
+    
+    Returns True if metadata needed to be written to the file;
+    False otherwise.
+    
+    Parameters:
+    value -- value of the metadata property to synchronize
+    image -- pyexiv2.Image object containing metadata to synchronize
+    metadata_key -- key of the metadata tag to synchronize
+    sync_check_func -- function to determine sync status of metadata tag
+    
+    """
     require_pyexiv2_obj(image, 'image')
     
     value_deleted = False
@@ -176,16 +310,62 @@ def _sync_metadata_value_to_file(value, image, metadata_key, sync_check_func):
 
 
 def sync_value_to_exif(value, image, metadata_key):
+    """\
+    Writes Exif image metadata to a file.
+    
+    Metadata is only actually written to the files if the values are
+    out of sync.
+    
+    Returns True if metadata needed to be written to the file;
+    False otherwise.
+    
+    Parameters:
+    value -- value of the metadata property to synchronize
+    image -- pyexiv2.Image object containing metadata to synchronize
+    metadata_key -- key of the Exif metadata tag to synchronize
+    
+    """
     return _sync_metadata_value_to_file(value, image, metadata_key,
                                         value_synced_with_exif)
 
 
 def sync_value_to_iptc(value, image, metadata_key):
+    """\
+    Writes IPTC image metadata to a file.
+    
+    Metadata is only actually written to the files if the values are
+    out of sync.
+    
+    Returns True if metadata needed to be written to the file;
+    False otherwise.
+    
+    Parameters:
+    value -- value of the metadata property to synchronize
+    image -- pyexiv2.Image object containing metadata to synchronize
+    metadata_key -- key of the IPTC metadata tag to synchronize
+    
+    """
     return _sync_metadata_value_to_file(value, image, metadata_key,
                                         value_synced_with_iptc)
 
 
 def sync_value_to_exif_and_iptc(value, image, exif_key, iptc_key):
+    """\
+    Writes Exif and IPTC image metadata to a file.
+    
+    Metadata is only actually written to the files if the values are
+    out of sync.
+    
+    Returns True if metadata needed to be written to the file;
+    False otherwise.
+    
+    Parameters:
+    value -- value of the metadata property to synchronize
+    image -- pyexiv2.Image object containing metadata to synchronize
+    exif_key -- key of the Exif metadata tag to synchronize
+    iptc_key -- key of the IPTC metadata tag to synchronize
+    
+    """
     require_pyexiv2_obj(image, 'image')
     
     value_deleted = False
@@ -217,6 +397,26 @@ def sync_value_to_exif_and_iptc(value, image, exif_key, iptc_key):
 
 def sync_datetime_to_exif_and_iptc(datetime_value, image, exif_datetime_key,
                                    iptc_date_key, iptc_time_key):
+    """\
+    Writes Exif and IPTC date/time image metadata to a file.
+    
+    Note that Exif stores combined date/time values in a single tag, while IPTC
+    separates the date value into one tag and the time value into another.
+    
+    Metadata is only actually written to the files if the values are
+    out of sync.
+    
+    Returns True if metadata needed to be written to the file;
+    False otherwise.
+    
+    Parameters:
+    datetime_value -- date/time value of the metadata property to synchronize
+    image -- pyexiv2.Image object containing metadata to synchronize
+    exif_datetime_key -- key of Exif date/time metadata to synchronize
+    iptc_date_key -- key of the IPTC date metadata tag to synchronize
+    iptc_time_key -- key of the IPTC time metadata tag to synchronize
+    
+    """
     require_pyexiv2_obj(image, 'image')
     
     mod = not datetime_synced_with_exif_and_iptc(datetime_value, image,
@@ -238,6 +438,18 @@ def sync_datetime_to_exif_and_iptc(datetime_value, image, exif_datetime_key,
 
 
 def read_value_from_exif_and_iptc(image, exif_key, iptc_key):
+    """\
+    Reads image metadata value with overlapping Exif and IPTC tags from a file.
+    
+    Returns the metadata value from the file according to the recommendations
+    given by the Metadata Working Group.
+    
+    Parameters:
+    image -- pyexiv2.Image object containing metadata to read
+    exif_key -- key of the Exif metadata tag to read
+    iptc_key -- key of the IPTC metadata tag to read
+    
+    """
     require_pyexiv2_obj(image, 'image')
     exif_value = None
     iptc_value = None
@@ -254,6 +466,22 @@ def read_value_from_exif_and_iptc(image, exif_key, iptc_key):
 
 def read_datetime_from_exif_and_iptc(image, exif_datetime_key,
                                      iptc_date_key, iptc_time_key):
+    """\
+    Reads image metadata date/time value with overlapping Exif and IPTC tags.
+    
+    Note that Exif stores combined date/time values in a single tag, while IPTC
+    separates the date value into one tag and the time value into another.
+    
+    Returns the metadata value from the file according to the recommendations
+    given by the Metadata Working Group.
+    
+    Parameters:
+    image -- pyexiv2.Image object containing metadata to read
+    exif_datetime_key -- key of Exif metadata tag to read
+    iptc_date_key -- key of the IPTC date metadata tag to read
+    iptc_time_key -- key of the IPTC time metadata tag to read
+    
+    """
     require_pyexiv2_obj(image, 'image')
     exif_datetime_value = None
     iptc_date_value = None

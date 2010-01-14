@@ -1,11 +1,11 @@
 TODO:
 =====
 
-* Write docstrings, including for the model properties.
-
 * Create 404.html (page not found) and 500.html (server error).
 
 * Figure out how to create temporary test images with PIL.
+
+* Automated unit tests.
 
 * In test.py::
   

@@ -4,7 +4,25 @@ from photasm.photos.models import Album, Photo, PhotoTag
 
 
 class PhotoAdmin(admin.ModelAdmin):
+    """\
+    Django Admin form for adding and editing Photos.
+    
+    """
     def save_model(self, request, obj, form, change):
+        """\
+        Saves the Photo object.
+        
+        If the Photo is just being added, or if the image data associated to
+        the Photo has been changed, image metadata is read from the file on the
+        filesystem before applying the user-entered values for the properties
+        and saving them back to the file on the filesystem. Otherwise, if the
+        Photo is being changed without modifying its associated image data,
+        the image metadata is simply written to the file on the filesystem.
+        
+        The change parameter is False if object is being added, and it is
+        True if the object is being edited.
+        
+        """
         image_change = False
         try:
             old_obj = Photo.objects.get(pk=obj.pk)
