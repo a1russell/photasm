@@ -472,4 +472,4 @@ class PhotoEditForm(ModelForm):
     """
     class Meta:
         model = Photo
-        exclude = ('owner', 'data',)
+        exclude = ('owner', 'data', 'metadata_sync_enabled',)
