@@ -12,6 +12,9 @@ TODO:
         'image_metadata': image_metadata,
     }
 
+* Remove tests for _metadata_value_synced_with_file,
+  _sync_metadata_value_to_file?
+
 * Implement inline formset for PhotoTags and Albums on the Photo form.
 
 * Implement ZIP uploading for albums. Experiment with multi-file forms.

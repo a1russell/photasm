@@ -200,6 +200,42 @@ class Photo(models.Model):
     def get_keywords(self):
         """\
         Returns the photograph keywords as a list of strings.
+
+        >>> # Set things up.
+        >>> import os
+        >>> import tempfile
+        >>> from django.core.files.images import ImageFile
+        >>> from PIL import Image
+        >>> file_descriptor, file_path = tempfile.mkstemp(suffix='.jpg')
+        >>> os.close(file_descriptor)
+        >>> Image.new('RGB', (1,1)).save(file_path, 'JPEG')
+        >>> User.objects.all().delete()
+
+        >>> # Create some models.
+        >>> photo = Photo()
+        >>> owner = User.objects.create(username='Adam')
+        >>> album = Album.objects.create(name='test', owner=owner)
+        >>> test_kw = PhotoTag.objects.create(name="test")
+        >>> photo_kw = PhotoTag.objects.create(name="photo")
+        >>> photo.owner = owner
+        >>> photo.album = album
+        >>> image = open(file_path)
+        >>> photo.data = ImageFile(image)
+        >>> photo.save()
+        >>> image.close()
+
+        >>> # Use this function
+        >>> print photo.get_keywords()
+        []
+
+        >>> photo.keywords.add(test_kw)
+        >>> photo.keywords.add(photo_kw)
+        >>> photo.save()
+        >>> print photo.get_keywords()
+        [u'test', u'photo']
+
+        >>> # Clean up.
+        >>> os.remove(file_path)
         
         """
         keywords = []
@@ -213,12 +249,69 @@ class Photo(models.Model):
         
         Parameters:
         keywords -- the list of keywords to set
+
+        >>> # Set things up.
+        >>> import os
+        >>> import tempfile
+        >>> from django.core.files.images import ImageFile
+        >>> from PIL import Image
+        >>> file_descriptor, file_path = tempfile.mkstemp(suffix='.jpg')
+        >>> os.close(file_descriptor)
+        >>> Image.new('RGB', (1,1)).save(file_path, 'JPEG')
+        >>> User.objects.all().delete()
+        >>> PhotoTag.objects.all().delete()
+
+        >>> # Create some models.
+        >>> test_kw = PhotoTag.objects.create(name="test")
+        >>> photo = Photo()
+        >>> owner = User.objects.create(username='Adam')
+        >>> album = Album.objects.create(name='test', owner=owner)
+        >>> photo.owner = owner
+        >>> photo.album = album
+        >>> image = open(file_path)
+        >>> photo.data = ImageFile(image)
+        >>> photo.save()
+        >>> image.close()
+        >>> print photo.get_keywords()
+        []
+        >>> print test_kw.photo_set.count()
+        0
+        >>> print PhotoTag.objects.count()
+        1
+
+        >>> # Use this function
+        >>> photo.set_keywords(['Test', 'photo'])
+        >>> photo.save()
+        >>> print photo.get_keywords()
+        [u'test', u'photo']
+        >>> print test_kw.photo_set.count()
+        1
+        >>> print PhotoTag.objects.count()
+        2
+
+        >>> photo.set_keywords(['foo', 'bar'])
+        >>> photo.save()
+        >>> print photo.get_keywords()
+        [u'foo', u'bar']
+        >>> print test_kw.photo_set.count()
+        0
+        >>> print PhotoTag.objects.count()
+        4
+
+        >>> photo.set_keywords([])
+        >>> photo.save()
+        >>> print photo.get_keywords()
+        []
+
+        >>> # Clean up.
+        >>> os.remove(file_path)
         
         """
+        self.keywords.clear()
+
         if not keywords:
             return
         
-        self.keywords.clear()
         for keyword in keywords:
             try:
                 photo_tag = PhotoTag.objects.get(name__iexact=keyword)
@@ -240,6 +333,168 @@ class Photo(models.Model):
         
         Returns True if metadata needed to be written to the file;
         False otherwise.
+
+        >>> # Set things up.
+        >>> import datetime
+        >>> import os
+        >>> import tempfile
+        >>> from django.core.files.images import ImageFile
+        >>> from PIL import Image
+        >>> import pyexiv2
+        >>> file_descriptor, file_path = tempfile.mkstemp(suffix='.jpg')
+        >>> os.close(file_descriptor)
+        >>> Image.new('RGB', (1,1)).save(file_path, 'JPEG')
+        >>> User.objects.all().delete()
+       
+        >>> user = User.objects.create(username="Adam")
+        >>> album = Album.objects.create(owner=user, name="Test")
+        >>> photo = Photo()
+        >>> photo.owner = user
+        >>> image = open(file_path)
+        >>> photo.data = ImageFile(image)
+        >>> photo.description = "Test file"
+        >>> photo.artist = "Adam"
+        >>> photo.country = "USA"
+        >>> photo.province_state = "Virginia"
+        >>> photo.city = "Blacksburg"
+        >>> photo.location = "Dreamland"
+        >>> photo.time_created = datetime.datetime(2007, 9, 28, 3, 0)
+        >>> photo.album = album
+        >>> photo.is_jpeg = True
+        >>> photo.save()
+        >>> image.close()
+        >>> os.remove(file_path)
+        >>> photo.set_keywords(['test', 'photo'])
+        >>> photo.save()
+        >>> photo.sync_metadata_to_file()
+        True
+       
+        >>> metadata = pyexiv2.Image(photo.data.path)
+        >>> metadata.readMetadata()
+        >>> print metadata['Exif.Image.ImageDescription']
+        Test file
+        >>> print metadata['Exif.Image.Artist']
+        Adam
+        >>> print metadata['Iptc.Application2.CountryName']
+        USA
+        >>> print metadata['Iptc.Application2.ProvinceState']
+        Virginia
+        >>> print metadata['Iptc.Application2.City']
+        Blacksburg
+        >>> print metadata['Iptc.Application2.SubLocation']
+        Dreamland
+        >>> print metadata['Exif.Photo.DateTimeOriginal']
+        2007-09-28 03:00:00
+        >>> print metadata['Iptc.Application2.Keywords']
+        ('test', 'photo')
+        >>> print metadata['Exif.Photo.PixelXDimension']
+        1
+        >>> print metadata['Exif.Photo.PixelYDimension']
+        1
+       
+        >>> photo.sync_metadata_to_file()
+        False
+        >>> # Nothing should have changed.
+        >>> metadata = pyexiv2.Image(photo.data.path)
+        >>> metadata.readMetadata()
+        >>> print metadata['Exif.Image.ImageDescription']
+        Test file
+        >>> print metadata['Exif.Image.Artist']
+        Adam
+        >>> print metadata['Iptc.Application2.CountryName']
+        USA
+        >>> print metadata['Iptc.Application2.ProvinceState']
+        Virginia
+        >>> print metadata['Iptc.Application2.City']
+        Blacksburg
+        >>> print metadata['Iptc.Application2.SubLocation']
+        Dreamland
+        >>> print metadata['Exif.Photo.DateTimeOriginal']
+        2007-09-28 03:00:00
+        >>> print metadata['Iptc.Application2.Keywords']
+        ('test', 'photo')
+        >>> print metadata['Exif.Photo.PixelXDimension']
+        1
+        >>> print metadata['Exif.Photo.PixelYDimension']
+        1
+
+        >>> photo.description = "Image for testing"
+        >>> photo.save()
+        >>> photo.sync_metadata_to_file()
+        True
+        >>> metadata = pyexiv2.Image(photo.data.path)
+        >>> metadata.readMetadata()
+        >>> print metadata['Exif.Image.ImageDescription']
+        Image for testing
+
+        >>> photo.metadata_sync_enabled = False
+        >>> photo.description = "Sample image for testing purposes"
+        >>> photo.save()
+        >>> print photo.sync_metadata_to_file()
+        False
+       
+        >>> # Sometimes the image isn't a JPEG.
+        >>> file_descriptor, file_path = tempfile.mkstemp(suffix='.tif')
+        >>> os.close(file_descriptor)
+        >>> Image.new('RGB', (1,1)).save(file_path, 'TIFF')
+        >>> photo = Photo()
+        >>> photo.owner = user
+        >>> photo.description = 'Test file'
+        >>> image = open(file_path)
+        >>> photo.data = ImageFile(image)
+        >>> photo.album = album
+        >>> photo.is_jpeg = False
+        >>> photo.save()
+        >>> image.close()
+        >>> os.remove(file_path)
+        >>> print photo.sync_metadata_to_file()
+        True
+        >>> metadata = pyexiv2.Image(photo.data.path)
+        >>> metadata.readMetadata()
+        >>> print metadata['Exif.Image.ImageWidth']
+        1
+        >>> print metadata['Exif.Image.ImageLength']
+        1
+
+        >>> # Sometimes metadata can't be read from the image.
+        >>> file_descriptor, file_path = tempfile.mkstemp(suffix='.pcx')
+        >>> os.close(file_descriptor)
+        >>> Image.new('RGB', (1,1)).save(file_path, 'PCX')
+        >>> photo = Photo()
+        >>> photo.owner = user
+        >>> photo.description = 'Test file'
+        >>> image = open(file_path)
+        >>> photo.data = ImageFile(image)
+        >>> photo.album = album
+        >>> photo.save()
+        >>> image.close()
+        >>> os.remove(file_path)
+        >>> print photo.metadata_sync_enabled
+        True
+        >>> print photo.sync_metadata_to_file()
+        False
+        >>> print photo.metadata_sync_enabled
+        False
+
+        >>> # Sometimes metadata can't be written to the image.
+        >>> file_descriptor, file_path = tempfile.mkstemp(suffix='.bmp')
+        >>> os.close(file_descriptor)
+        >>> Image.new('RGB', (1,1)).save(file_path, 'BMP')
+        >>> photo = Photo()
+        >>> photo.owner = user
+        >>> photo.description = 'Test file'
+        >>> image = open(file_path)
+        >>> photo.data = ImageFile(image)
+        >>> photo.album = album
+        >>> photo.save()
+        >>> image.close()
+        >>> os.remove(file_path)
+        >>> print photo.metadata_sync_enabled
+        True
+        >>> print photo.sync_metadata_to_file()
+        False
+        >>> print photo.metadata_sync_enabled
+        False
         
         """
         if not self.metadata_sync_enabled:
@@ -320,11 +575,124 @@ class Photo(models.Model):
         
         Returns True if metadata needed to be written to the database;
         False otherwise.
-        
+
+        >>> # Set things up.
+        >>> import datetime
+        >>> import os
+        >>> import tempfile
+        >>> from django.core.files.images import ImageFile
+        >>> from PIL import Image
+        >>> import pyexiv2
+        >>> file_descriptor, file_path = tempfile.mkstemp(suffix='.jpg')
+        >>> os.close(file_descriptor)
+        >>> Image.new('RGB', (1,1)).save(file_path, 'JPEG')
+        >>> User.objects.all().delete()
+
+        >>> metadata = pyexiv2.Image(file_path)
+        >>> metadata.readMetadata()
+        >>> metadata['Exif.Image.ImageDescription'] = "Test file"
+        >>> metadata['Exif.Image.Artist'] = "Adam"
+        >>> metadata['Iptc.Application2.CountryName'] = "USA"
+        >>> metadata['Iptc.Application2.ProvinceState'] = "Virginia"
+        >>> metadata['Iptc.Application2.City'] = "Blacksburg"
+        >>> metadata['Iptc.Application2.SubLocation'] = "Dreamland"
+        >>> try:
+        ...     metadata['Exif.Photo.DateTimeOriginal'] = datetime.datetime(
+        ...         2007, 9, 28, 3, 0)
+        ... except TypeError:
+        ...     pass
+        >>> metadata['Iptc.Application2.Keywords'] = ['test', 'photo']
+        >>> metadata.writeMetadata()
+       
+        >>> user = User.objects.create(username="Adam")
+        >>> album = Album.objects.create(owner=user, name="Test")
+        >>> photo = Photo()
+        >>> photo.owner = user
+        >>> image = open(file_path)
+        >>> photo.data = ImageFile(image)
+        >>> photo.album = album
+        >>> photo.is_jpeg = True
+        >>> photo.save()
+        >>> image.close()
+        >>> os.remove(file_path)
+        >>> photo.sync_metadata_from_file()
+        True
+       
+        >>> print photo.description
+        Test file
+        >>> print photo.artist
+        Adam
+        >>> print photo.country
+        USA
+        >>> print photo.province_state
+        Virginia
+        >>> print photo.city
+        Blacksburg
+        >>> print photo.location
+        Dreamland
+        >>> print photo.time_created
+        2007-09-28 03:00:00
+        >>> print photo.get_keywords()
+        [u'test', u'photo']
+       
+        >>> photo.sync_metadata_from_file()
+        False
+        >>> # Nothing should have changed.
+        >>> print photo.description
+        Test file
+        >>> print photo.artist
+        Adam
+        >>> print photo.country
+        USA
+        >>> print photo.province_state
+        Virginia
+        >>> print photo.city
+        Blacksburg
+        >>> print photo.location
+        Dreamland
+        >>> print photo.time_created
+        2007-09-28 03:00:00
+        >>> print photo.get_keywords()
+        [u'test', u'photo']
+
+        >>> metadata = pyexiv2.Image(photo.data.path)
+        >>> metadata.readMetadata()
+        >>> metadata['Exif.Image.ImageDescription'] = "Image for testing"
+        >>> metadata.writeMetadata()
+        >>> photo.sync_metadata_from_file()
+        True
+        >>> print photo.description
+        Image for testing
+
+        >>> photo.metadata_sync_enabled = False
+        >>> photo.description = "Image for testing"
+        >>> photo.save()
+        >>> print photo.sync_metadata_from_file()
+        False
+
+        >>> # Sometimes metadata can't be read from the image.
+        >>> file_descriptor, file_path = tempfile.mkstemp(suffix='.pcx')
+        >>> os.close(file_descriptor)
+        >>> Image.new('RGB', (1,1)).save(file_path, 'PCX')
+        >>> photo = Photo()
+        >>> photo.owner = user
+        >>> image = open(file_path)
+        >>> photo.data = ImageFile(image)
+        >>> photo.album = album
+        >>> photo.save()
+        >>> image.close()
+        >>> os.remove(file_path)
+        >>> print photo.metadata_sync_enabled
+        True
+        >>> print photo.sync_metadata_from_file()
+        False
+        >>> print photo.metadata_sync_enabled
+        False
+
         """
         if not self.metadata_sync_enabled:
             return False
-        
+
         try:
             image_metadata = pyexiv2.Image(self.data.path)
             image_metadata.readMetadata()
@@ -416,28 +784,12 @@ class Photo(models.Model):
                 'Iptc.Application2.TimeCreated')
         
         # sync keywords
-        mod_attr = not value_synced_with_iptc(self.keywords.all(),
+        mod_attr = not value_synced_with_iptc(self.get_keywords(),
             image_metadata, 'Iptc.Application2.Keywords')
         mod_instance = mod_attr or mod_instance
         if ('Iptc.Application2.Keywords' in image_metadata.iptcKeys() and
             mod_attr):
             self.set_keywords(image_metadata['Iptc.Application2.Keywords'])
-        
-        # sync image_width
-        image_width_key = get_image_width_key(self.is_jpeg)
-        mod_attr = not value_synced_with_exif(self.image_width, image_metadata,
-                                              image_width_key)
-        mod_instance = mod_attr or mod_instance
-        if image_width_key in image_metadata.exifKeys() and mod_attr:
-            self.image_width = image_metadata[image_width_key]
-        
-        # sync image_height
-        image_height_key = get_image_height_key(self.is_jpeg)
-        mod_attr = not value_synced_with_exif(
-            self.image_height, image_metadata, image_height_key)
-        mod_instance = mod_attr or mod_instance
-        if image_height_key in image_metadata.exifKeys() and mod_attr:
-            self.image_height = image_metadata[image_height_key]
         
         if mod_instance and commit:
             self.save()
