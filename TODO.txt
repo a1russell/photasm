@@ -1,16 +1,7 @@
 TODO:
 =====
 
-* Figure out how to create temporary test images with PIL.
-
 * Automated unit tests.
-
-* In test.py::
-  
-    import photasm.photos.image_metadata
-    __test__ = {
-        'image_metadata': image_metadata,
-    }
 
 * Remove tests for _metadata_value_synced_with_file,
   _sync_metadata_value_to_file?
