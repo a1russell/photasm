@@ -26,9 +26,15 @@ def deploy():
          'fi' % env)
     sudo('mv %(project_root)s/photasm-%(release)s '
          '%(project_root)s/photasm' % env)
-    sudo('if [[ -d %(project_root)s/photasm-%(release)s.bak ]]; then '
+    sudo('if [[ -f %(project_root)s/photasm-%(release)s.bak/'
+         'settings_local.py ]]; then '
          'mv %(project_root)s/photasm-%(release)s.bak/settings_local.py '
          '%(project_root)s/photasm/;'
+         'else '
+         'cp %(project_root)s/photasm/settings_local.py.template '
+         '%(project_root)s/photasm/settings_local.py; '
+         'fi' % env)
+    sudo('if [[ -d %(project_root)s/photasm-%(release)s.bak ]]; then '
          'rm -rf %(project_root)s/photasm-%(release)s.bak;'
          'fi' % env)
     sudo('chown -R root:www-admin %(project_root)s/photasm' % env)
