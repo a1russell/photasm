@@ -1,7 +1,7 @@
 TODO:
 =====
 
-* Automated unit tests, broken out into a tests directory.
+* Automated unit tests.
 
 * Remove tests for _metadata_value_synced_with_file,
   _sync_metadata_value_to_file?
@@ -9,3 +9,4 @@ TODO:
 * Implement inline formset for PhotoTags and Albums on the Photo form.
 
 * Implement ZIP uploading for albums. Experiment with multi-file forms.
+
