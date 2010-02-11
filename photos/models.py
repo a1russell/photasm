@@ -1,8 +1,16 @@
+import math
+import os
+from StringIO import StringIO
+import tempfile
+
 from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist
+from django.core.files.images import ImageFile
 from django.core.files.storage import default_storage
 from django.db import models
 from django.forms import ModelForm
+from PIL import Image
+import pyexiv2
 
 from photasm.photos.image_metadata import *
 
@@ -49,6 +57,9 @@ class Photo(models.Model):
     data = models.ImageField(upload_to="photos/%Y/%m/%d",
                              height_field="image_height",
                              width_field="image_width")
+
+    thumbnail = models.ImageField(upload_to="thumbs/%Y/%m/%d",
+                                  editable=False, null=True)
 
     description = models.CharField(blank=True, max_length=2000)
     """\
@@ -189,6 +200,9 @@ class Photo(models.Model):
             if old_obj.data.path != self.data.path:
                 path = old_obj.data.path
                 default_storage.delete(path)
+                if old_ob.thumbnail:
+                    path = old_obj.thumbnail.path
+                    default_storage.delete(path)
         except:
             pass
         super(Photo, self).save(*args, **kwargs)
@@ -202,10 +216,6 @@ class Photo(models.Model):
         Returns the photograph keywords as a list of strings.
 
         >>> # Set things up.
-        >>> import os
-        >>> import tempfile
-        >>> from django.core.files.images import ImageFile
-        >>> from PIL import Image
         >>> file_descriptor, file_path = tempfile.mkstemp(suffix='.jpg')
         >>> os.close(file_descriptor)
         >>> Image.new('RGB', (1,1)).save(file_path, 'JPEG')
@@ -251,10 +261,6 @@ class Photo(models.Model):
         keywords -- the list of keywords to set
 
         >>> # Set things up.
-        >>> import os
-        >>> import tempfile
-        >>> from django.core.files.images import ImageFile
-        >>> from PIL import Image
         >>> file_descriptor, file_path = tempfile.mkstemp(suffix='.jpg')
         >>> os.close(file_descriptor)
         >>> Image.new('RGB', (1,1)).save(file_path, 'JPEG')
@@ -322,6 +328,176 @@ class Photo(models.Model):
                 continue
             self.keywords.add(photo_tag)
     
+    def create_thumbnail(self):
+        """\
+        Creates a thumbnail version of the image.
+
+        The embedded thumnail in a JPEG will be used if it exists.
+        If the image is JPEG and it does not already have a thumbnail, it
+        will be embedded.
+
+        Note that calling this method will also call Photo.save().
+
+        >>> import datetime
+
+        >>> # Create a JPEG with an embedded thumbnail.
+        >>> image_fd, image_path = tempfile.mkstemp(suffix='.jpg')
+        >>> os.close(image_fd)
+        >>> thumb_fd, thumb_path = tempfile.mkstemp(suffix='.jpg')
+        >>> os.close(thumb_fd)
+        >>> image = Image.new('RGB', (640, 480))
+        >>> image.save(image_path, 'JPEG')
+        >>> thumb = image.copy()
+        >>> thumb.thumbnail((160, 120))
+        >>> thumb.save(thumb_path, 'JPEG')
+        >>> # Write the thumbnail to the image metadata.
+        >>> metadata = pyexiv2.Image(image_path)
+        >>> metadata.readMetadata()
+        >>> metadata.setThumbnailFromJpegFile(thumb_path)
+        >>> metadata.writeMetadata()
+        >>> os.remove(thumb_path)
+        >>> User.objects.all().delete()
+        >>> # Create Photo model object.
+        >>> user = User.objects.create(username="Adam")
+        >>> album = Album.objects.create(owner=user, name="Test")
+        >>> photo = Photo()
+        >>> photo.owner = user
+        >>> image = open(image_path)
+        >>> photo.data = ImageFile(image)
+        >>> photo.album = album
+        >>> photo.is_jpeg = True
+        >>> photo.save()
+        >>> image.close()
+        >>> os.remove(image_path)
+
+        >>> # Create and verify the thumbnail.
+        >>> photo.create_thumbnail()
+        >>> photo.save()
+        >>> thumb = Image.open(photo.thumbnail.path)
+        >>> print thumb.size[0] * thumb.size[1]
+        19200
+        >>> metadata = pyexiv2.Image(photo.data.path)
+        >>> metadata.readMetadata()
+        >>> embedded = metadata.getThumbnailData()[1]
+        >>> external = open(photo.thumbnail.path).read()
+        >>> embedded == external
+        True
+
+        >>> # Test JPEG without thumbnail already embedded.
+        >>> image = Image.new('RGB', (640, 480))
+        >>> image.save(image_path, 'JPEG')
+        >>> photo = Photo()
+        >>> photo.owner = user
+        >>> image = open(image_path)
+        >>> photo.data = ImageFile(image)
+        >>> photo.album = album
+        >>> photo.is_jpeg = True
+        >>> photo.save()
+        >>> image.close()
+        >>> os.remove(image_path)
+        >>> photo.create_thumbnail()
+        >>> photo.save()
+        >>> thumb = Image.open(photo.thumbnail.path)
+        >>> print thumb.size[0] * thumb.size[1]
+        19200
+        >>> metadata = pyexiv2.Image(photo.data.path)
+        >>> metadata.readMetadata()
+        >>> embedded = metadata.getThumbnailData()[1]
+        >>> external = open(photo.thumbnail.path).read()
+        >>> print embedded == external
+        True
+
+        >>> # Test BMP.
+        >>> image_fd, image_path = tempfile.mkstemp(suffix='.bmp')
+        >>> os.close(image_fd)
+        >>> image = Image.new('RGB', (640, 480))
+        >>> image.save(image_path, 'BMP')
+        >>> photo = Photo()
+        >>> photo.owner = user
+        >>> image = open(image_path)
+        >>> photo.data = ImageFile(image)
+        >>> photo.album = album
+        >>> photo.is_jpeg = False
+        >>> photo.save()
+        >>> image.close()
+        >>> os.remove(image_path)
+        >>> photo.create_thumbnail()
+        >>> photo.save()
+        >>> thumb = Image.open(photo.thumbnail.path)
+        >>> print thumb.size[0] * thumb.size[1]
+        19200
+
+        >>> # Test small image.
+        >>> image = Image.new('RGB', (80, 60))
+        >>> image.save(image_path, 'JPEG')
+        >>> photo = Photo()
+        >>> photo.owner = user
+        >>> image = open(image_path)
+        >>> photo.data = ImageFile(image)
+        >>> photo.album = album
+        >>> photo.is_jpeg = True
+        >>> photo.save()
+        >>> image.close()
+        >>> os.remove(image_path)
+        >>> print photo.create_thumbnail()
+        None
+        >>> photo.save()
+        >>> thumb = Image.open(photo.thumbnail.path)
+        >>> print thumb.size
+        (80, 60)
+        >>> metadata = pyexiv2.Image(photo.data.path)
+        >>> metadata.readMetadata()
+        >>> embedded = metadata.getThumbnailData()[1]
+        >>> external = open(photo.thumbnail.path).read()
+        >>> print embedded == external
+        True
+
+        """
+        needs_thumbnail_embed = False
+        if self.is_jpeg:
+            metadata = pyexiv2.Image(self.data.path)
+            metadata.readMetadata()
+            try:
+                thumb_data = metadata.getThumbnailData()
+            except IOError:
+                needs_thumbnail_embed = True
+            else:
+                thumb = StringIO(thumb_data[1])
+                thumb_image = Image.open(thumb)
+                thumb_fd, thumb_path = tempfile.mkstemp()
+                os.close(thumb_fd)
+                thumb_image.save(thumb_path, thumb_image.format)
+                thumb.close()
+                thumb = open(thumb_path)
+                self.thumbnail = ImageFile(thumb)
+                self.save()
+                thumb.close()
+                os.remove(thumb_path)
+                return
+
+        THUMB_SZ = 19200
+        thumb_sz_coefficient = math.sqrt(THUMB_SZ) / \
+                               math.sqrt(self.image_height * self.image_width)
+        thumb_width = int(round(self.image_width * thumb_sz_coefficient))
+        thumb_height = int(round(self.image_height * thumb_sz_coefficient))
+        
+        thumb_image = Image.open(self.data.path)
+        if (self.image_width * self.image_height) > THUMB_SZ:
+            thumb_image.thumbnail((thumb_width, thumb_height))
+        thumb_fd, thumb_path = tempfile.mkstemp()
+        os.close(thumb_fd)
+        thumb_image.save(thumb_path, thumb_image.format)
+        thumb = open(thumb_path)
+        self.thumbnail = ImageFile(thumb)
+        self.save()
+        thumb.close()
+
+        if needs_thumbnail_embed:
+            metadata.setThumbnailFromJpegFile(thumb_path)
+            metadata.writeMetadata()
+
+        os.remove(thumb_path)
+    
     def sync_metadata_to_file(self):
         """\
         Synchronizes the image metadata from the object to the filesystem.
@@ -336,11 +512,6 @@ class Photo(models.Model):
 
         >>> # Set things up.
         >>> import datetime
-        >>> import os
-        >>> import tempfile
-        >>> from django.core.files.images import ImageFile
-        >>> from PIL import Image
-        >>> import pyexiv2
         >>> file_descriptor, file_path = tempfile.mkstemp(suffix='.jpg')
         >>> os.close(file_descriptor)
         >>> Image.new('RGB', (1,1)).save(file_path, 'JPEG')
@@ -578,11 +749,6 @@ class Photo(models.Model):
 
         >>> # Set things up.
         >>> import datetime
-        >>> import os
-        >>> import tempfile
-        >>> from django.core.files.images import ImageFile
-        >>> from PIL import Image
-        >>> import pyexiv2
         >>> file_descriptor, file_path = tempfile.mkstemp(suffix='.jpg')
         >>> os.close(file_descriptor)
         >>> Image.new('RGB', (1,1)).save(file_path, 'JPEG')

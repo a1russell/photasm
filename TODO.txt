@@ -1,7 +1,9 @@
 TODO:
 =====
 
-* Automated unit tests.
+* Replace Photo.data with Photo.photo.
+
+* Automated unit tests, broken out into a tests directory.
 
 * Remove tests for _metadata_value_synced_with_file,
   _sync_metadata_value_to_file?
