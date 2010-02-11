@@ -26,18 +26,18 @@ class PhotoAdmin(admin.ModelAdmin):
         image_change = False
         try:
             old_obj = Photo.objects.get(pk=obj.pk)
-            if old_obj.data.path != obj.data.path:
+            if old_obj.image.path != obj.image.path:
                 image_change = True
         except:
             pass
         
-        photo_data = form.cleaned_data['data']
-        photo_data_content_type = None
+        photo = form.cleaned_data['data']
+        photo_content_type = None
         try:
-            photo_data_content_type = photo_data.content_type
+            photo_content_type = photo.content_type
         except AttributeError:
             pass
-        if photo_data_content_type == "image/jpeg":
+        if photo_content_type == "image/jpeg":
             obj.is_jpeg = True
         
         obj.save()

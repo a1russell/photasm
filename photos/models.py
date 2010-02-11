@@ -54,9 +54,9 @@ class Photo(models.Model):
     """
     owner = models.ForeignKey(User)
 
-    data = models.ImageField(upload_to="photos/%Y/%m/%d",
-                             height_field="image_height",
-                             width_field="image_width")
+    image = models.ImageField(upload_to="photos/%Y/%m/%d",
+                              height_field="image_height",
+                              width_field="image_width")
 
     thumbnail = models.ImageField(upload_to="thumbs/%Y/%m/%d",
                                   editable=False, null=True)
@@ -194,11 +194,11 @@ class Photo(models.Model):
     
     def save(self, *args, **kwargs):
         try:
-            # Check if the data property has changed.
+            # Check if the image property has changed.
             # If so, delete the old image on the filesystem.
             old_obj = Photo.objects.get(pk=self.pk)
-            if old_obj.data.path != self.data.path:
-                path = old_obj.data.path
+            if old_obj.image.path != self.image.path:
+                path = old_obj.image.path
                 default_storage.delete(path)
                 if old_ob.thumbnail:
                     path = old_obj.thumbnail.path
@@ -230,7 +230,7 @@ class Photo(models.Model):
         >>> photo.owner = owner
         >>> photo.album = album
         >>> image = open(file_path)
-        >>> photo.data = ImageFile(image)
+        >>> photo.image = ImageFile(image)
         >>> photo.save()
         >>> image.close()
 
@@ -275,7 +275,7 @@ class Photo(models.Model):
         >>> photo.owner = owner
         >>> photo.album = album
         >>> image = open(file_path)
-        >>> photo.data = ImageFile(image)
+        >>> photo.image = ImageFile(image)
         >>> photo.save()
         >>> image.close()
         >>> print photo.get_keywords()
@@ -363,7 +363,7 @@ class Photo(models.Model):
         >>> photo = Photo()
         >>> photo.owner = user
         >>> image = open(image_path)
-        >>> photo.data = ImageFile(image)
+        >>> photo.image = ImageFile(image)
         >>> photo.album = album
         >>> photo.is_jpeg = True
         >>> photo.save()
@@ -376,7 +376,7 @@ class Photo(models.Model):
         >>> thumb = Image.open(photo.thumbnail.path)
         >>> print thumb.size[0] * thumb.size[1]
         19200
-        >>> metadata = pyexiv2.Image(photo.data.path)
+        >>> metadata = pyexiv2.Image(photo.image.path)
         >>> metadata.readMetadata()
         >>> embedded = metadata.getThumbnailData()[1]
         >>> external = open(photo.thumbnail.path).read()
@@ -389,7 +389,7 @@ class Photo(models.Model):
         >>> photo = Photo()
         >>> photo.owner = user
         >>> image = open(image_path)
-        >>> photo.data = ImageFile(image)
+        >>> photo.image = ImageFile(image)
         >>> photo.album = album
         >>> photo.is_jpeg = True
         >>> photo.save()
@@ -400,7 +400,7 @@ class Photo(models.Model):
         >>> thumb = Image.open(photo.thumbnail.path)
         >>> print thumb.size[0] * thumb.size[1]
         19200
-        >>> metadata = pyexiv2.Image(photo.data.path)
+        >>> metadata = pyexiv2.Image(photo.image.path)
         >>> metadata.readMetadata()
         >>> embedded = metadata.getThumbnailData()[1]
         >>> external = open(photo.thumbnail.path).read()
@@ -415,7 +415,7 @@ class Photo(models.Model):
         >>> photo = Photo()
         >>> photo.owner = user
         >>> image = open(image_path)
-        >>> photo.data = ImageFile(image)
+        >>> photo.image = ImageFile(image)
         >>> photo.album = album
         >>> photo.is_jpeg = False
         >>> photo.save()
@@ -433,7 +433,7 @@ class Photo(models.Model):
         >>> photo = Photo()
         >>> photo.owner = user
         >>> image = open(image_path)
-        >>> photo.data = ImageFile(image)
+        >>> photo.image = ImageFile(image)
         >>> photo.album = album
         >>> photo.is_jpeg = True
         >>> photo.save()
@@ -445,7 +445,7 @@ class Photo(models.Model):
         >>> thumb = Image.open(photo.thumbnail.path)
         >>> print thumb.size
         (80, 60)
-        >>> metadata = pyexiv2.Image(photo.data.path)
+        >>> metadata = pyexiv2.Image(photo.image.path)
         >>> metadata.readMetadata()
         >>> embedded = metadata.getThumbnailData()[1]
         >>> external = open(photo.thumbnail.path).read()
@@ -455,7 +455,7 @@ class Photo(models.Model):
         """
         needs_thumbnail_embed = False
         if self.is_jpeg:
-            metadata = pyexiv2.Image(self.data.path)
+            metadata = pyexiv2.Image(self.image.path)
             metadata.readMetadata()
             try:
                 thumb_data = metadata.getThumbnailData()
@@ -481,7 +481,7 @@ class Photo(models.Model):
         thumb_width = int(round(self.image_width * thumb_sz_coefficient))
         thumb_height = int(round(self.image_height * thumb_sz_coefficient))
         
-        thumb_image = Image.open(self.data.path)
+        thumb_image = Image.open(self.image.path)
         if (self.image_width * self.image_height) > THUMB_SZ:
             thumb_image.thumbnail((thumb_width, thumb_height))
         thumb_fd, thumb_path = tempfile.mkstemp()
@@ -522,7 +522,7 @@ class Photo(models.Model):
         >>> photo = Photo()
         >>> photo.owner = user
         >>> image = open(file_path)
-        >>> photo.data = ImageFile(image)
+        >>> photo.image = ImageFile(image)
         >>> photo.description = "Test file"
         >>> photo.artist = "Adam"
         >>> photo.country = "USA"
@@ -540,7 +540,7 @@ class Photo(models.Model):
         >>> photo.sync_metadata_to_file()
         True
        
-        >>> metadata = pyexiv2.Image(photo.data.path)
+        >>> metadata = pyexiv2.Image(photo.image.path)
         >>> metadata.readMetadata()
         >>> print metadata['Exif.Image.ImageDescription']
         Test file
@@ -566,7 +566,7 @@ class Photo(models.Model):
         >>> photo.sync_metadata_to_file()
         False
         >>> # Nothing should have changed.
-        >>> metadata = pyexiv2.Image(photo.data.path)
+        >>> metadata = pyexiv2.Image(photo.image.path)
         >>> metadata.readMetadata()
         >>> print metadata['Exif.Image.ImageDescription']
         Test file
@@ -593,7 +593,7 @@ class Photo(models.Model):
         >>> photo.save()
         >>> photo.sync_metadata_to_file()
         True
-        >>> metadata = pyexiv2.Image(photo.data.path)
+        >>> metadata = pyexiv2.Image(photo.image.path)
         >>> metadata.readMetadata()
         >>> print metadata['Exif.Image.ImageDescription']
         Image for testing
@@ -612,7 +612,7 @@ class Photo(models.Model):
         >>> photo.owner = user
         >>> photo.description = 'Test file'
         >>> image = open(file_path)
-        >>> photo.data = ImageFile(image)
+        >>> photo.image = ImageFile(image)
         >>> photo.album = album
         >>> photo.is_jpeg = False
         >>> photo.save()
@@ -620,7 +620,7 @@ class Photo(models.Model):
         >>> os.remove(file_path)
         >>> print photo.sync_metadata_to_file()
         True
-        >>> metadata = pyexiv2.Image(photo.data.path)
+        >>> metadata = pyexiv2.Image(photo.image.path)
         >>> metadata.readMetadata()
         >>> print metadata['Exif.Image.ImageWidth']
         1
@@ -635,7 +635,7 @@ class Photo(models.Model):
         >>> photo.owner = user
         >>> photo.description = 'Test file'
         >>> image = open(file_path)
-        >>> photo.data = ImageFile(image)
+        >>> photo.image = ImageFile(image)
         >>> photo.album = album
         >>> photo.save()
         >>> image.close()
@@ -655,7 +655,7 @@ class Photo(models.Model):
         >>> photo.owner = user
         >>> photo.description = 'Test file'
         >>> image = open(file_path)
-        >>> photo.data = ImageFile(image)
+        >>> photo.image = ImageFile(image)
         >>> photo.album = album
         >>> photo.save()
         >>> image.close()
@@ -672,7 +672,7 @@ class Photo(models.Model):
             return False
         
         try:
-            image_metadata = pyexiv2.Image(self.data.path)
+            image_metadata = pyexiv2.Image(self.image.path)
             image_metadata.readMetadata()
         except IOError:
             self.metadata_sync_enabled = False
@@ -775,7 +775,7 @@ class Photo(models.Model):
         >>> photo = Photo()
         >>> photo.owner = user
         >>> image = open(file_path)
-        >>> photo.data = ImageFile(image)
+        >>> photo.image = ImageFile(image)
         >>> photo.album = album
         >>> photo.is_jpeg = True
         >>> photo.save()
@@ -821,7 +821,7 @@ class Photo(models.Model):
         >>> print photo.get_keywords()
         [u'test', u'photo']
 
-        >>> metadata = pyexiv2.Image(photo.data.path)
+        >>> metadata = pyexiv2.Image(photo.image.path)
         >>> metadata.readMetadata()
         >>> metadata['Exif.Image.ImageDescription'] = "Image for testing"
         >>> metadata.writeMetadata()
@@ -843,7 +843,7 @@ class Photo(models.Model):
         >>> photo = Photo()
         >>> photo.owner = user
         >>> image = open(file_path)
-        >>> photo.data = ImageFile(image)
+        >>> photo.image = ImageFile(image)
         >>> photo.album = album
         >>> photo.save()
         >>> image.close()
@@ -860,7 +860,7 @@ class Photo(models.Model):
             return False
 
         try:
-            image_metadata = pyexiv2.Image(self.data.path)
+            image_metadata = pyexiv2.Image(self.image.path)
             image_metadata.readMetadata()
         except IOError:
             self.metadata_sync_enabled = False

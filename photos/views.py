@@ -32,17 +32,17 @@ def photo_upload(request):
         form = PhotoUploadForm(request.POST, request.FILES)
 
         if form.is_valid():
-            photo_data = form.cleaned_data['data']
-            photo_data_content_type = None
+            photo = form.cleaned_data['data']
+            photo_content_type = None
             
             new_photo = form.save(commit=False)
             new_photo.owner = request.user
             
             try:
-                photo_data_content_type = photo_data.content_type
+                photo_content_type = photo.content_type
             except AttributeError:
                 pass
-            if photo_data_content_type == "image/jpeg":
+            if photo_content_type == "image/jpeg":
                 new_photo.is_jpeg = True
             
             new_photo.save()
