@@ -47,6 +47,7 @@ def photo_upload(request):
             
             new_photo.save()
             form.save_m2m()
+            new_photo.create_thumbnail()
             new_photo.sync_metadata_from_file()
             
             request.user.message_set.create(

@@ -55,6 +55,7 @@ class PhotoAdmin(admin.ModelAdmin):
             time_created = obj.time_created
             keywords = obj.keywords.all()
 
+            obj.create_thumbnail()
             obj.sync_metadata_from_file()
             
             # Put user-entered fields back into object that may have
