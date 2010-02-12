@@ -511,7 +511,7 @@ class PhotoUploadForm(ModelForm):
     """
     class Meta:
         model = Photo
-        fields = ('album', 'data',)
+        fields = ('album', 'image',)
 
 
 class PhotoEditForm(ModelForm):
@@ -527,4 +527,4 @@ class PhotoEditForm(ModelForm):
     """
     class Meta:
         model = Photo
-        exclude = ('owner', 'data', 'metadata_sync_enabled',)
+        exclude = ('owner', 'image', 'metadata_sync_enabled',)

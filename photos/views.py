@@ -32,7 +32,7 @@ def photo_upload(request):
         form = PhotoUploadForm(request.POST, request.FILES)
 
         if form.is_valid():
-            photo = form.cleaned_data['data']
+            photo = form.cleaned_data['image']
             photo_content_type = None
             
             new_photo = form.save(commit=False)

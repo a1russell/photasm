@@ -31,7 +31,7 @@ class PhotoAdmin(admin.ModelAdmin):
         except:
             pass
         
-        photo = form.cleaned_data['data']
+        photo = form.cleaned_data['image']
         photo_content_type = None
         try:
             photo_content_type = photo.content_type
