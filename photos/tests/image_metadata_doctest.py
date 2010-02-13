@@ -5,7 +5,7 @@
 >>> from PIL import Image
 >>> import pyexiv2
 >>> from photasm.photos.image_metadata import (
-...     _collapse_empty_to_none,
+...     _collapse_iter,
 ...     _del_img_key,
 ...     _is_iter,
 ...     _metadata_value_synced_with_file,
@@ -77,19 +77,28 @@ True
 >>> print _is_iter("Test string.")
 False
 
+>>> print _is_iter(u"Test string.")
+False
+
 >>> print _is_iter(1)
 False
 
 
->>> # Test image_metadata._collapse_empty_to_none(value)
+>>> # Test image_metadata._collapse_iter(value)
 
->>> print _collapse_empty_to_none([])
+>>> print _collapse_iter([])
 None
 
->>> print _collapse_empty_to_none([1, 2, 3])
+>>> print _collapse_iter([1, 2, 3])
 [1, 2, 3]
 
->>> print _collapse_empty_to_none(1)
+>>> print _collapse_iter(1)
+1
+
+>>> print _collapse_iter((1,))
+1
+
+>>> print _collapse_iter(set([1]))
 1
 
 
@@ -271,6 +280,18 @@ True
 >>> test_keywords.sort()
 >>> print test_keywords
 ['a', 'b', 'c']
+>>> print value_synced_with_iptc(test_keywords, metadata,
+...                              'Iptc.Application2.Keywords')
+True
+
+>>> test_keywords = ['a']
+>>> try:
+...     metadata['Iptc.Application2.Keywords'] = test_keywords
+... except TypeError:
+...     pass
+>>> metadata.writeMetadata()
+>>> metadata = pyexiv2.Image(file_path)
+>>> metadata.readMetadata()
 >>> print value_synced_with_iptc(test_keywords, metadata,
 ...                              'Iptc.Application2.Keywords')
 True

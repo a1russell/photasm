@@ -69,18 +69,19 @@ def _is_iter(obj):
     except TypeError:
         pass
     else:
-        if not isinstance(obj, str):
+        if not isinstance(obj, str) and not isinstance(obj, unicode):
             return True
     return False
 
 
-def _collapse_empty_to_none(value):
+def _collapse_iter(value):
     """\
-    Collapses an value of zero length to None.
-    
-    In other words, this function takes a value and tries to see if it has a
-    length. If it does, and that length is zero, this function returns None.
-    Otherwise, it returns the original value.
+    Collapses an iterable object as appropriate.
+
+    More specifically, this function takes a value and tries to see if it has
+    a length. If it does, and that length is zero, this function returns None.
+    If the length is one, and the value is not a string, the single value is
+    returned without the iterable. Otherwise, the original value is returned.
     
     Parameters:
     value -- value for which to collapse to None if zero-length
@@ -93,6 +94,9 @@ def _collapse_empty_to_none(value):
     else:
         if value_length == 0:
             value = None
+        elif value_length == 1 and not isinstance(value, str) and not \
+             isinstance(value, unicode):
+            return tuple(value)[0]
     return value
 
 
@@ -135,7 +139,8 @@ def _metadata_value_synced_with_file(value, image, metadata_key, keys_method):
         metadata_value = image[metadata_key]
     
     # Empty set or string counts as in sync with None.
-    value = _collapse_empty_to_none(value)
+    value = _collapse_iter(value)
+    metadata_value = _collapse_iter(metadata_value)
     
     # If values are iterable, they should not be considered out of sync if
     # they simply aren't sorted the same. Therefore, iterable values are
@@ -205,7 +210,9 @@ def value_synced_with_exif_and_iptc(value, image, exif_key, iptc_key):
         iptc_value = image[iptc_key]
     
     # Empty set or string counts as in sync with None.
-    value = _collapse_empty_to_none(value)
+    value = _collapse_iter(value)
+    exif_value = _collapse_iter(exif_value)
+    iptc_value = _collapse_iter(iptc_value)
     
     if exif_value is None:
         return value == iptc_value
