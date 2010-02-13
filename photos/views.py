@@ -3,6 +3,7 @@ from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render_to_response
 from django.views.generic import list_detail
+from PIL import Image
 
 from photasm.photos.models import Photo, PhotoEditForm, PhotoUploadForm
 
@@ -33,17 +34,15 @@ def photo_upload(request):
 
         if form.is_valid():
             photo = form.cleaned_data['image']
-            photo_content_type = None
             
             new_photo = form.save(commit=False)
             new_photo.owner = request.user
-            
-            try:
-                photo_content_type = photo.content_type
-            except AttributeError:
-                pass
-            if photo_content_type == "image/jpeg":
+
+            photo.open()
+            image = Image.open(photo)
+            if image.format == 'JPEG':
                 new_photo.is_jpeg = True
+            photo.close()
             
             new_photo.save()
             form.save_m2m()

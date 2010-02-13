@@ -1,4 +1,5 @@
 from django.contrib import admin
+from PIL import Image
 
 from photasm.photos.models import Album, Photo, PhotoTag
 
@@ -32,13 +33,11 @@ class PhotoAdmin(admin.ModelAdmin):
             pass
         
         photo = form.cleaned_data['image']
-        photo_content_type = None
-        try:
-            photo_content_type = photo.content_type
-        except AttributeError:
-            pass
-        if photo_content_type == "image/jpeg":
+        photo.open()
+        image = Image.open(photo)
+        if image.format == 'JPEG':
             obj.is_jpeg = True
+        photo.close()
         
         obj.save()
         form.save_m2m()
