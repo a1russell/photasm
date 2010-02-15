@@ -200,7 +200,7 @@ class Photo(models.Model):
             if old_obj.image.path != self.image.path:
                 path = old_obj.image.path
                 default_storage.delete(path)
-                if old_ob.thumbnail:
+                if old_obj.thumbnail:
                     path = old_obj.thumbnail.path
                     default_storage.delete(path)
         except:
