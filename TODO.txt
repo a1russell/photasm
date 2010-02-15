@@ -3,6 +3,8 @@ TODO:
 
 * Automated unit tests.
 
+* Clean up Photo objects after unit tests so MEDIA_ROOT isn't polluted.
+
 * Remove tests for _metadata_value_synced_with_file,
   _sync_metadata_value_to_file?
 
