@@ -1,0 +1,6 @@
+Django
+PIL
+
+# Also required, but not available via pip:
+#pyexiv2
+
