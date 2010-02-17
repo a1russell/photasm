@@ -12,57 +12,57 @@
 			{% endfor %}
 		</ul>
 	{% endif %}
-	
+
 	<figure>
 		<dd>
 			<img src="{{ object.image.url }}" alt="{{ object.description }}" />
 		</dd>
-		
+
 		{% if object.description %}
 			<dt>{{ object.description }}</dt>
 		{% endif %}
 	</figure>
-	
+
 	<dl>
 		<dt>Owner</dt>
 		<dd>{{ object.owner.username|title }}</dd>
-		
+
 		<dt>Width</dt>
 		<dd>{{ object.image_width }}</dd>
-		
+
 		<dt>Height</dt>
 		<dd>{{ object.image_height }}</dd>
-		
+
 		{% if object.artist %}
 			<dt>Artist</dt>
 			<dd>{{ object.artist }}</dd>
 		{% endif %}
-		
+
 		{% if object.country %}
 			<dt>Country</dt>
 			<dd>{{ object.country }}</dd>
 		{% endif %}
-		
+
 		{% if object.province_state %}
 			<dt>Province/State</dt>
 			<dd>{{ object.province_state }}</dd>
 		{% endif %}
-		
+
 		{% if object.city %}
 			<dt>City</dt>
 			<dd>{{ object.city }}</dd>
 		{% endif %}
-		
+
 		{% if object.location %}
 			<dt>Location</dt>
 			<dd>{{ object.location }}</dd>
 		{% endif %}
-		
+
 		{% if object.date_created %}
 			<dt>Date Taken</dt>
 			<dd>{{ object.date_created }}</dd>
 		{% endif %}
-		
+
 		{% if object.keywords.count %}
 			<dt>Keywords</dt>
 			{% for keyword in object.keywords.all %}

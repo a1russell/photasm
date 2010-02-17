@@ -1,10 +1,18 @@
-from fabric.api import *
+from fabric.api import (
+    cd,
+    env,
+    local,
+    put,
+    require,
+    run,
+    sudo,
+)
 
 
 def deploy():
     """\
     Deploy the latest version of the site to the servers.
-    
+
     """
     # Options for specifying env requirements:
     # Command line, per task: fab deploy:hosts="host1;host2"

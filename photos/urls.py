@@ -1,4 +1,4 @@
-from django.conf.urls.defaults import *
+from django.conf.urls.defaults import patterns, url
 
 from photasm.photos.models import Photo
 
@@ -8,17 +8,17 @@ info_dict = {
 
 urlpatterns = patterns(
     'photasm.photos.views',
-    
+
     url(r'^$', 'photo_list',
         dict(info_dict, template_name="photos/photo_list.html"),
         "photo_list"),
-    
+
     url(r'^(?P<object_id>\d+)/$', 'photo_detail',
         dict(info_dict, template_name="photos/photo_detail.html"),
         "photo_detail"),
-    
+
     url(r'^upload/$', 'photo_upload'),
-    
+
     url(r'^(?P<object_id>\d+)/edit/$', 'photo_edit'),
 )
 

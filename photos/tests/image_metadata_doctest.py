@@ -840,4 +840,3 @@ None
 >>> os.remove(file_path)
 
 """
-

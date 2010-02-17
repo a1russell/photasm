@@ -6,4 +6,3 @@ __test__ = {
     "image_metadata": image_metadata_doctest,
     "photo": photo_doctest,
 }
-

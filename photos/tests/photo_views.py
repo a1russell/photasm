@@ -46,8 +46,8 @@ class AddPhotoTest(TestCase):
         self.assertEqual(response.status_code, 200)
 
         image = open(self.image_path)
-        response = self.client.post(photo_upload_url,
-                                    {'album': self.album.id, 'image': image })
+        response = self.client.post(photo_upload_url, {
+            'album': self.album.id, 'image': image})
         image.close()
         photos = Photo.objects.order_by('-id')
         self.assertTrue(len(photos))
@@ -73,6 +73,7 @@ class AddTIFFTest(AddPhotoTest):
 
 
 class EditPhotoTest(TestCase):
+
     def setUp(self):
         User.objects.all().delete()
         Album.objects.all().delete()
@@ -134,4 +135,3 @@ class EditPhotoTest(TestCase):
 
         response = self.client.post(photo_edit_url, {})
         self.assertEqual(response.status_code, 200)
-

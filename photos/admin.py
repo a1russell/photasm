@@ -7,22 +7,23 @@ from photasm.photos.models import Album, Photo, PhotoTag
 class PhotoAdmin(admin.ModelAdmin):
     """\
     Django Admin form for adding and editing Photos.
-    
+
     """
+
     def save_model(self, request, obj, form, change):
         """\
         Saves the Photo object.
-        
+
         If the Photo is just being added, or if the image data associated to
         the Photo has been changed, image metadata is read from the file on the
         filesystem before applying the user-entered values for the properties
         and saving them back to the file on the filesystem. Otherwise, if the
         Photo is being changed without modifying its associated image data,
         the image metadata is simply written to the file on the filesystem.
-        
+
         The change parameter is False if object is being added, and it is
         True if the object is being edited.
-        
+
         """
         image_change = False
         try:
@@ -31,17 +32,17 @@ class PhotoAdmin(admin.ModelAdmin):
                 image_change = True
         except:
             pass
-        
+
         photo = form.cleaned_data['image']
         photo.open()
         image = Image.open(photo)
         if image.format == 'JPEG':
             obj.is_jpeg = True
         photo.close()
-        
+
         obj.save()
         form.save_m2m()
-        
+
         # object is being added or image field is being modified
         if change is False or image_change is True:
             # Remember user-entered fields.
@@ -56,7 +57,7 @@ class PhotoAdmin(admin.ModelAdmin):
 
             obj.create_thumbnail()
             obj.sync_metadata_from_file()
-            
+
             # Put user-entered fields back into object that may have
             # been overwritten by metadata sync.
             sync_back = False
