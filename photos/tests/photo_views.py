@@ -1,3 +1,4 @@
+import datetime
 import os
 import tempfile
 
@@ -17,10 +18,6 @@ class AddPhotoTest(TestCase):
     is_jpeg = True
 
     def setUp(self):
-        User.objects.all().delete()
-        Album.objects.all().delete()
-        Photo.objects.all().delete()
-
         self.user = User.objects.create_user('adam', 'adam@example.com',
                                              'adampassword')
         self.client.login(username='adam', password='adampassword')
@@ -38,6 +35,8 @@ class AddPhotoTest(TestCase):
     def tearDown(self):
         os.remove(self.image_path)
         self.client.logout()
+        User.objects.all().delete()
+        Album.objects.all().delete()
         Photo.objects.all().delete()
 
     def test_form(self):
@@ -76,31 +75,30 @@ class AddTIFFTest(AddPhotoTest):
 class EditPhotoTest(TestCase):
 
     def setUp(self):
-        User.objects.all().delete()
-        Album.objects.all().delete()
-        Photo.objects.all().delete()
-
-        self.user = User.objects.create_user('adam', 'adam@example.com',
-                                             'adampassword')
+        user = User.objects.create_user('adam', 'adam@example.com',
+                                        'adampassword')
         self.client.login(username='adam', password='adampassword')
-        self.album = Album.objects.create(owner=self.user, name='Test')
+        self.album = Album.objects.create(owner=user, name='Test')
         self.keyword = PhotoTag.objects.create(name='test')
 
-        image_fd, self.image_path = tempfile.mkstemp(suffix='.jpg')
+        image_fd, image_path = tempfile.mkstemp(suffix='.jpg')
         os.close(image_fd)
-        Image.new('RGB', (640, 480)).save(self.image_path, 'JPEG')
+        Image.new('RGB', (640, 480)).save(image_path, 'JPEG')
 
         self.photo = Photo()
-        self.photo.owner = self.user
+        self.photo.owner = user
         self.photo.album = self.album
-        image = open(self.image_path)
+        image = open(image_path)
         self.photo.image = ImageFile(image)
         self.photo.is_jpeg = True
         self.photo.save()
+        os.remove(image_path)
 
     def tearDown(self):
-        os.remove(self.image_path)
         self.client.logout()
+        User.objects.all().delete()
+        Album.objects.all().delete()
+        PhotoTag.objects.all().delete()
         Photo.objects.all().delete()
 
     def test_form(self):
@@ -136,4 +134,52 @@ class EditPhotoTest(TestCase):
                          'test image')
 
         response = self.client.post(photo_edit_url, {})
+        self.assertEqual(response.status_code, 200)
+
+
+class PhotoDetailTest(TestCase):
+
+    def setUp(self):
+        user = User.objects.create_user('adam', 'adam@example.com',
+                                        'adampassword')
+        self.client.login(username='adam', password='adampassword')
+        album = Album.objects.create(owner=user, name='Test')
+        keyword = PhotoTag.objects.create(name='test')
+
+        image_fd, image_path = tempfile.mkstemp(suffix='.jpg')
+        os.close(image_fd)
+        Image.new('RGB', (640, 480)).save(image_path, 'JPEG')
+
+        self.photo = Photo()
+        self.photo.owner = user
+        self.photo.album = album
+        image = open(image_path)
+        self.photo.image = ImageFile(image)
+        self.photo.is_jpeg = True
+        self.photo.description = 'test image'
+        self.photo.artist = 'Adam'
+        self.photo.country = 'USA'
+        self.photo.province_state = 'VA'
+        self.photo.city = 'Blacksburg'
+        self.photo.location = 'Drillfield'
+        self.photo.time_created = datetime.datetime(2007, 9, 28, 3, 0)
+        self.photo.save()
+        os.remove(image_path)
+        self.photo.set_keywords(['test', 'photo'])
+        self.photo.save()
+        self.photo.sync_metadata_to_file()
+        self.photo.create_thumbnail()
+
+    def tearDown(self):
+        self.client.logout()
+        User.objects.all().delete()
+        Album.objects.all().delete()
+        PhotoTag.objects.all().delete()
+        Photo.objects.all().delete()
+
+    def test_view(self):
+        photo_detail = 'photasm.photos.views.photo_detail'
+
+        photo_detail_url = reverse(photo_detail, args=[self.photo.id])
+        response = self.client.get(photo_detail_url)
         self.assertEqual(response.status_code, 200)

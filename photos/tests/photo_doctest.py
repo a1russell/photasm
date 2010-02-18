@@ -15,7 +15,6 @@
 >>> file_descriptor, file_path = tempfile.mkstemp(suffix='.jpg')
 >>> os.close(file_descriptor)
 >>> Image.new('RGB', (1,1)).save(file_path, 'JPEG')
->>> User.objects.all().delete()
 
 >>> # Create some models.
 >>> photo = Photo()
@@ -42,6 +41,9 @@
 
 >>> # Clean up.
 >>> os.remove(file_path)
+>>> User.objects.all().delete()
+>>> Album.objects.all().delete()
+>>> PhotoTag.objects.all().delete()
 >>> Photo.objects.all().delete()
 
 
@@ -51,8 +53,6 @@
 >>> file_descriptor, file_path = tempfile.mkstemp(suffix='.jpg')
 >>> os.close(file_descriptor)
 >>> Image.new('RGB', (1,1)).save(file_path, 'JPEG')
->>> User.objects.all().delete()
->>> PhotoTag.objects.all().delete()
 
 >>> # Create some models.
 >>> test_kw = PhotoTag.objects.create(name="test")
@@ -98,6 +98,9 @@
 
 >>> # Clean up.
 >>> os.remove(file_path)
+>>> User.objects.all().delete()
+>>> Album.objects.all().delete()
+>>> PhotoTag.objects.all().delete()
 >>> Photo.objects.all().delete()
 
 
@@ -119,7 +122,6 @@
 >>> metadata.setThumbnailFromJpegFile(thumb_path)
 >>> metadata.writeMetadata()
 >>> os.remove(thumb_path)
->>> User.objects.all().delete()
 >>> # Create Photo model object.
 >>> user = User.objects.create(username="Adam")
 >>> album = Album.objects.create(owner=user, name="Test")
@@ -215,6 +217,8 @@ None
 >>> print embedded == external
 True
 
+>>> User.objects.all().delete()
+>>> Album.objects.all().delete()
 >>> Photo.objects.all().delete()
 
 
@@ -224,7 +228,6 @@ True
 >>> file_descriptor, file_path = tempfile.mkstemp(suffix='.jpg')
 >>> os.close(file_descriptor)
 >>> Image.new('RGB', (1,1)).save(file_path, 'JPEG')
->>> User.objects.all().delete()
 
 >>> user = User.objects.create(username="Adam")
 >>> album = Album.objects.create(owner=user, name="Test")
@@ -376,6 +379,9 @@ False
 >>> print photo.metadata_sync_enabled
 False
 
+>>> User.objects.all().delete()
+>>> Album.objects.all().delete()
+>>> PhotoTag.objects.all().delete()
 >>> Photo.objects.all().delete()
 
 
@@ -385,7 +391,6 @@ False
 >>> file_descriptor, file_path = tempfile.mkstemp(suffix='.jpg')
 >>> os.close(file_descriptor)
 >>> Image.new('RGB', (1,1)).save(file_path, 'JPEG')
->>> User.objects.all().delete()
 
 >>> metadata = pyexiv2.Image(file_path)
 >>> metadata.readMetadata()
@@ -488,6 +493,9 @@ False
 >>> print photo.metadata_sync_enabled
 False
 
+>>> User.objects.all().delete()
+>>> Album.objects.all().delete()
+>>> PhotoTag.objects.all().delete()
 >>> Photo.objects.all().delete()
 
 """
