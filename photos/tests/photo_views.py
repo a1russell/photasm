@@ -38,6 +38,7 @@ class AddPhotoTest(TestCase):
     def tearDown(self):
         os.remove(self.image_path)
         self.client.logout()
+        Photo.objects.all().delete()
 
     def test_form(self):
         photo_upload_url = reverse('photasm.photos.views.photo_upload')
@@ -100,6 +101,7 @@ class EditPhotoTest(TestCase):
     def tearDown(self):
         os.remove(self.image_path)
         self.client.logout()
+        Photo.objects.all().delete()
 
     def test_form(self):
         photo_edit = 'photasm.photos.views.photo_edit'

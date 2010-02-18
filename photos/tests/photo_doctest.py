@@ -42,6 +42,7 @@
 
 >>> # Clean up.
 >>> os.remove(file_path)
+>>> Photo.objects.all().delete()
 
 
 >>> # Test Photo.set_keywords(keywords)
@@ -97,6 +98,7 @@
 
 >>> # Clean up.
 >>> os.remove(file_path)
+>>> Photo.objects.all().delete()
 
 
 >>> # Test Photo.create_thumbnail()
@@ -212,6 +214,8 @@ None
 >>> external = open(photo.thumbnail.path).read()
 >>> print embedded == external
 True
+
+>>> Photo.objects.all().delete()
 
 
 >>> # Test Photo.sync_metadata_to_file()
@@ -372,6 +376,8 @@ False
 >>> print photo.metadata_sync_enabled
 False
 
+>>> Photo.objects.all().delete()
+
 
 >>> # Test Photo.sync_metadata_from_file()
 
@@ -481,5 +487,7 @@ True
 False
 >>> print photo.metadata_sync_enabled
 False
+
+>>> Photo.objects.all().delete()
 
 """
