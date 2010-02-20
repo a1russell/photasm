@@ -225,9 +225,6 @@ class PhotoDetailTest(TestCase):
         os.remove(image_path)
         self.photo.set_keywords(['test', 'photo'])
         self.photo.save()
-        # TODO: Remove these two lines.
-        self.photo.sync_metadata_to_file()
-        self.photo.create_thumbnail()
 
     def tearDown(self):
         self.client.logout()
