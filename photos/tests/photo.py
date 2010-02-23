@@ -11,15 +11,23 @@ import pyexiv2
 from photasm.photos.models import Album, Photo, PhotoTag
 
 
-class GetKeywordsTest(TestCase):
+class KeywordsTest(TestCase):
 
-    def test(self):
-        # Set things up.
-        file_descriptor, file_path = tempfile.mkstemp(suffix='.jpg')
+    def setUp(self):
+        # Create an image.
+        file_descriptor, self.file_path = tempfile.mkstemp(suffix='.jpg')
         os.close(file_descriptor)
-        Image.new('RGB', (1, 1)).save(file_path, 'JPEG')
+        Image.new('RGB', (1, 1)).save(self.file_path, 'JPEG')
 
-        # Create some models.
+    def tearDown(self):
+        os.remove(self.file_path)
+        User.objects.all().delete()
+        Album.objects.all().delete()
+        PhotoTag.objects.all().delete()
+        Photo.objects.all().delete()
+
+    def test_get(self):
+        # Create a Photo object.
         photo = Photo()
         owner = User.objects.create(username='Adam')
         album = Album.objects.create(name='test', owner=owner)
@@ -27,78 +35,59 @@ class GetKeywordsTest(TestCase):
         photo_kw = PhotoTag.objects.create(name="photo")
         photo.owner = owner
         photo.album = album
-        image = open(file_path)
+        image = open(self.file_path)
         photo.image = ImageFile(image)
         photo.save()
         image.close()
 
-        # Use this function
+        # Photo has empty list of keywords.
         self.assertEqual(photo.get_keywords(), [])
 
+        # Add some keywords.
         photo.keywords.add(test_kw)
         photo.keywords.add(photo_kw)
         photo.save()
         self.assertEqual(photo.get_keywords(), [u'test', u'photo'])
 
-        # Clean up.
-        os.remove(file_path)
-        User.objects.all().delete()
-        Album.objects.all().delete()
-        PhotoTag.objects.all().delete()
-        Photo.objects.all().delete()
-
-
-class SetKeywordsTest(TestCase):
-
-    def test(self):
-        # Set things up.
-        file_descriptor, file_path = tempfile.mkstemp(suffix='.jpg')
-        os.close(file_descriptor)
-        Image.new('RGB', (1, 1)).save(file_path, 'JPEG')
-
-        # Create some models.
+    def test_set(self):
+        # Create a Photo object.
         test_kw = PhotoTag.objects.create(name="test")
         photo = Photo()
         owner = User.objects.create(username='Adam')
         album = Album.objects.create(name='test', owner=owner)
         photo.owner = owner
         photo.album = album
-        image = open(file_path)
+        image = open(self.file_path)
         photo.image = ImageFile(image)
         photo.save()
         image.close()
-        self.assertEqual(photo.get_keywords(), [])
         self.assertEqual(test_kw.photo_set.count(), 0)
+        # Reminder: Database is assumed to be empty at the start of this test.
         self.assertEqual(PhotoTag.objects.count(), 1)
 
-        # Use this function
+        # Set the photo's keywords.
         photo.set_keywords(['Test', 'photo'])
         photo.save()
         self.assertEqual(photo.get_keywords(), [u'test', u'photo'])
         self.assertEqual(test_kw.photo_set.count(), 1)
         self.assertEqual(PhotoTag.objects.count(), 2)
 
+        # Set the photo's keywords to something completely different.
         photo.set_keywords(['foo', 'bar'])
         photo.save()
         self.assertEqual(photo.get_keywords(), [u'foo', u'bar'])
         self.assertEqual(test_kw.photo_set.count(), 0)
         self.assertEqual(PhotoTag.objects.count(), 4)
 
+        # Set the photo's keywords to an empty list.
         photo.set_keywords([])
         photo.save()
         self.assertEqual(photo.get_keywords(), [])
 
-        # Clean up.
-        os.remove(file_path)
-        User.objects.all().delete()
-        Album.objects.all().delete()
-        PhotoTag.objects.all().delete()
-        Photo.objects.all().delete()
-
 
 class CreateThumbnailTest(TestCase):
 
-    def test(self):
+    def runTest(self):
         # Create a JPEG with an embedded thumbnail.
         image_fd, image_path = tempfile.mkstemp(suffix='.jpg')
         os.close(image_fd)
@@ -109,12 +98,14 @@ class CreateThumbnailTest(TestCase):
         thumb = image.copy()
         thumb.thumbnail((160, 120))
         thumb.save(thumb_path, 'JPEG')
+
         # Write the thumbnail to the image metadata.
         metadata = pyexiv2.Image(image_path)
         metadata.readMetadata()
         metadata.setThumbnailFromJpegFile(thumb_path)
         metadata.writeMetadata()
         os.remove(thumb_path)
+
         # Create Photo model object.
         user = User.objects.create(username="Adam")
         album = Album.objects.create(owner=user, name="Test")
@@ -209,12 +200,13 @@ class CreateThumbnailTest(TestCase):
 
 class SyncMetadataToFileTest(TestCase):
 
-    def test(self):
-        # Set things up.
+    def runTest(self):
+        # Create an image.
         file_descriptor, file_path = tempfile.mkstemp(suffix='.jpg')
         os.close(file_descriptor)
         Image.new('RGB', (1, 1)).save(file_path, 'JPEG')
 
+        # Create a Photo object.
         user = User.objects.create(username="Adam")
         album = Album.objects.create(owner=user, name="Test")
         photo = Photo()
@@ -235,8 +227,12 @@ class SyncMetadataToFileTest(TestCase):
         os.remove(file_path)
         photo.set_keywords(['test', 'photo'])
         photo.save()
-        self.assertEqual(photo.sync_metadata_to_file(), True)
 
+        # Synchronize.
+        performed_sync = photo.sync_metadata_to_file()
+        self.assertTrue(performed_sync)
+
+        # Metadata should exist in the file itself.
         metadata = pyexiv2.Image(photo.image.path)
         metadata.readMetadata()
         self.assertEqual(metadata['Exif.Image.ImageDescription'], 'Test file')
@@ -254,7 +250,8 @@ class SyncMetadataToFileTest(TestCase):
         self.assertEqual(metadata['Exif.Photo.PixelXDimension'], 1)
         self.assertEqual(metadata['Exif.Photo.PixelYDimension'], 1)
 
-        self.assertEqual(photo.sync_metadata_to_file(), False)
+        # Attempt to synchronize again...
+        self.assertFalse(photo.sync_metadata_to_file())
         # Nothing should have changed.
         metadata = pyexiv2.Image(photo.image.path)
         metadata.readMetadata()
@@ -273,18 +270,21 @@ class SyncMetadataToFileTest(TestCase):
         self.assertEqual(metadata['Exif.Photo.PixelXDimension'], 1)
         self.assertEqual(metadata['Exif.Photo.PixelYDimension'], 1)
 
+        # Synchronize only one field.
         photo.description = "Image for testing"
         photo.save()
-        self.assertEqual(photo.sync_metadata_to_file(), True)
+        performed_sync = photo.sync_metadata_to_file()
+        self.assertTrue(performed_sync)
         metadata = pyexiv2.Image(photo.image.path)
         metadata.readMetadata()
         self.assertEqual(metadata['Exif.Image.ImageDescription'],
-        'Image for testing')
+                         'Image for testing')
 
+        # Disable synchronization.
         photo.metadata_sync_enabled = False
         photo.description = "Sample image for testing purposes"
         photo.save()
-        self.assertEqual(photo.sync_metadata_to_file(), False)
+        self.assertFalse(photo.sync_metadata_to_file())
 
         # Sometimes the image isn't a JPEG.
         file_descriptor, file_path = tempfile.mkstemp(suffix='.tif')
@@ -300,7 +300,8 @@ class SyncMetadataToFileTest(TestCase):
         photo.save()
         image.close()
         os.remove(file_path)
-        self.assertEqual(photo.sync_metadata_to_file(), True)
+        performed_sync = photo.sync_metadata_to_file()
+        self.assertTrue(performed_sync)
         metadata = pyexiv2.Image(photo.image.path)
         metadata.readMetadata()
         self.assertEqual(metadata['Exif.Image.ImageWidth'], 1)
@@ -319,9 +320,8 @@ class SyncMetadataToFileTest(TestCase):
         photo.save()
         image.close()
         os.remove(file_path)
-        self.assertEqual(photo.metadata_sync_enabled, True)
-        self.assertEqual(photo.sync_metadata_to_file(), False)
-        self.assertEqual(photo.metadata_sync_enabled, False)
+        self.assertFalse(photo.sync_metadata_to_file())
+        self.assertFalse(photo.metadata_sync_enabled)
 
         # Sometimes metadata can't be written to the image.
         file_descriptor, file_path = tempfile.mkstemp(suffix='.bmp')
@@ -336,9 +336,8 @@ class SyncMetadataToFileTest(TestCase):
         photo.save()
         image.close()
         os.remove(file_path)
-        self.assertEqual(photo.metadata_sync_enabled, True)
-        self.assertEqual(photo.sync_metadata_to_file(), False)
-        self.assertEqual(photo.metadata_sync_enabled, False)
+        self.assertFalse(photo.sync_metadata_to_file())
+        self.assertFalse(photo.metadata_sync_enabled)
 
         User.objects.all().delete()
         Album.objects.all().delete()
@@ -348,12 +347,11 @@ class SyncMetadataToFileTest(TestCase):
 
 class SyncMetadataFromFileTest(TestCase):
 
-    def test(self):
-        # Set things up.
+    def runTest(self):
+        # Create an image with metadata.
         file_descriptor, file_path = tempfile.mkstemp(suffix='.jpg')
         os.close(file_descriptor)
         Image.new('RGB', (1, 1)).save(file_path, 'JPEG')
-
         metadata = pyexiv2.Image(file_path)
         metadata.readMetadata()
         metadata['Exif.Image.ImageDescription'] = "Test file"
@@ -370,6 +368,7 @@ class SyncMetadataFromFileTest(TestCase):
         metadata['Iptc.Application2.Keywords'] = ['test', 'photo']
         metadata.writeMetadata()
 
+        # Create a Photo object.
         user = User.objects.create(username="Adam")
         album = Album.objects.create(owner=user, name="Test")
         photo = Photo()
@@ -381,8 +380,12 @@ class SyncMetadataFromFileTest(TestCase):
         photo.save()
         image.close()
         os.remove(file_path)
-        self.assertEqual(photo.sync_metadata_from_file(), True)
 
+        # Synchronize.
+        performed_sync = photo.sync_metadata_from_file()
+        self.assertTrue(performed_sync)
+
+        # Metadata should exist in the database.
         self.assertEqual(photo.description, 'Test file')
         self.assertEqual(photo.artist, 'Adam')
         self.assertEqual(photo.country, 'USA')
@@ -392,7 +395,8 @@ class SyncMetadataFromFileTest(TestCase):
         self.assertEqual(str(photo.time_created), '2007-09-28 03:00:00')
         self.assertEqual(photo.get_keywords(), [u'test', u'photo'])
 
-        self.assertEqual(photo.sync_metadata_from_file(), False)
+        # Attempt to synchronize again...
+        self.assertFalse(photo.sync_metadata_from_file())
         # Nothing should have changed.
         self.assertEqual(photo.description, 'Test file')
         self.assertEqual(photo.artist, 'Adam')
@@ -403,17 +407,20 @@ class SyncMetadataFromFileTest(TestCase):
         self.assertEqual(str(photo.time_created), '2007-09-28 03:00:00')
         self.assertEqual(photo.get_keywords(), [u'test', u'photo'])
 
+        # Synchronize only one field.
         metadata = pyexiv2.Image(photo.image.path)
         metadata.readMetadata()
         metadata['Exif.Image.ImageDescription'] = "Image for testing"
         metadata.writeMetadata()
-        self.assertEqual(photo.sync_metadata_from_file(), True)
+        performed_sync = photo.sync_metadata_from_file()
+        self.assertTrue(performed_sync)
         self.assertEqual(photo.description, 'Image for testing')
 
+        # Disable synchronization.
         photo.metadata_sync_enabled = False
         photo.description = "Image for testing"
         photo.save()
-        self.assertEqual(photo.sync_metadata_from_file(), False)
+        self.assertFalse(photo.sync_metadata_from_file())
 
         # Sometimes metadata can't be read from the image.
         file_descriptor, file_path = tempfile.mkstemp(suffix='.pcx')
@@ -427,9 +434,8 @@ class SyncMetadataFromFileTest(TestCase):
         photo.save()
         image.close()
         os.remove(file_path)
-        self.assertEqual(photo.metadata_sync_enabled, True)
-        self.assertEqual(photo.sync_metadata_from_file(), False)
-        self.assertEqual(photo.metadata_sync_enabled, False)
+        self.assertFalse(photo.sync_metadata_from_file())
+        self.assertFalse(photo.metadata_sync_enabled)
 
         User.objects.all().delete()
         Album.objects.all().delete()
