@@ -3,13 +3,13 @@ from django.conf.urls.defaults import (
     include,
     handler404,
     handler500,
-    patterns
+    patterns,
 )
 
 from django.contrib import admin
 admin.autodiscover()
 
-handler404, handler500 # Keep PyFlakes happy.
+handler404, handler500  # Keep PyFlakes happy.
 
 urlpatterns = patterns(
     '',
