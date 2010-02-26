@@ -1,3 +1,4 @@
+from auth import *
 from photo import *
 from photo_views import *
 from empty_database import *
