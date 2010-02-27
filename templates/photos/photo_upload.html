@@ -6,7 +6,7 @@
 
 {% block content %}
 	<form enctype="multipart/form-data" method="post"
-		  action="{% url photasm.photos.views.photo_upload %}">
+		action="{% url photasm.photos.views.photo_upload %}">
 		{{ form.as_p }}
 		<input type="submit" value="Submit" />
 	</form>

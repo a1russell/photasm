@@ -1,12 +1,12 @@
 {% extends "photos/base_photos.html" %}
- 
+
 {% block title %}
 	Photo Edit
 {% endblock %}
 
 {% block content %}
 	<form method="post" action=
-		  "{% url photasm.photos.views.photo_edit form.instance.id %}">
+		"{% url photasm.photos.views.photo_edit form.instance.id %}">
 		{{ form.as_p }}
 		<input type="submit" value="Submit" />
 	</form>

@@ -6,14 +6,14 @@
 
 {% block content %}
 	{% if object_list %}
-	    <ul>
-		    {% for photo in object_list %}
-		        <li>
-		        	<a href="{% url photo_detail photo.id %}" />{{ photo }}</a>
-		        </li>
-		    {% endfor %}
-	    </ul>
+		<ul>
+			{% for photo in object_list %}
+				<li>
+					<a href="{% url photo_detail photo.id %}" />{{ photo }}</a>
+				</li>
+			{% endfor %}
+		</ul>
 	{% else %}
-	    <p>No photos are available.</p>
+		<p>No photos are available.</p>
 	{% endif %}
 {% endblock %}
