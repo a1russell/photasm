@@ -202,8 +202,6 @@ class PhotoDetailTest(TestCase):
                                         'adampassword')
         self.client.login(username='adam', password='adampassword')
         album = Album.objects.create(owner=user, name='Test')
-        # TODO: Remove this line.
-        keyword = PhotoTag.objects.create(name='test')
 
         image_fd, image_path = tempfile.mkstemp(suffix='.jpg')
         os.close(image_fd)
