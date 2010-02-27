@@ -5,7 +5,14 @@ from django.shortcuts import get_object_or_404, render_to_response
 from django.views.generic import list_detail
 from PIL import Image
 
-from photasm.photos.models import Photo, PhotoEditForm, PhotoUploadForm
+from photasm.photos.models import (
+    Album, Photo, PhotoEditForm, PhotoUploadForm)
+
+
+@login_required
+def home(request):
+    album_list = Album.objects.filter(owner__id=request.user.id)
+    return render_to_response('photos/home.html', {'album_list': album_list})
 
 
 def photo_list(request, queryset, *args, **kwargs):

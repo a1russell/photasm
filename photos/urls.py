@@ -9,9 +9,7 @@ info_dict = {
 urlpatterns = patterns(
     'photasm.photos.views',
 
-    url(r'^$', 'photo_list',
-        dict(info_dict, template_name="photos/photo_list.html"),
-        "photo_list"),
+    url(r'^$', 'home', name='home'),
 
     url(r'^(?P<object_id>\d+)/$', 'photo_detail',
         dict(info_dict, template_name="photos/photo_detail.html"),

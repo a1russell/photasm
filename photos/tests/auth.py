@@ -28,7 +28,7 @@ class PhotoUploadTest(TestCase):
         self.assertRedirects(response, login_url)
 
 
-class PhotoEditTest(TestCase):
+class PhotoTest(TestCase):
 
     def setUp(self):
         # Create an image.
@@ -54,10 +54,17 @@ class PhotoEditTest(TestCase):
         Album.objects.all().delete()
         User.objects.all().delete()
 
-    def runTest(self):
+    def test_photo_edit(self):
         photo_edit = 'photasm.photos.views.photo_edit'
         photo_edit_url = reverse(photo_edit, args=[self.photo.id])
         login_url = get_login_url(photo_edit_url)
 
         response = self.client.get(photo_edit_url)
+        self.assertRedirects(response, login_url)
+
+    def test_home(self):
+        home_url = reverse('photasm.photos.views.home')
+        login_url = get_login_url(home_url)
+
+        response = self.client.get(home_url)
         self.assertRedirects(response, login_url)
