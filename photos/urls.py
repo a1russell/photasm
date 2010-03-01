@@ -1,9 +1,13 @@
 from django.conf.urls.defaults import patterns, url
 
-from photasm.photos.models import Photo
+from photasm.photos.models import Photo, Album
 
-info_dict = {
+photo_info = {
     'queryset': Photo.objects.all(),
+}
+
+album_info = {
+    'queryset': Album.objects.all(),
 }
 
 urlpatterns = patterns(
@@ -12,7 +16,7 @@ urlpatterns = patterns(
     url(r'^$', 'home', name='home'),
 
     url(r'^(?P<object_id>\d+)/$', 'photo_detail',
-        dict(info_dict, template_name="photos/photo_detail.html"),
+        dict(photo_info, template_name="photos/photo_detail.html"),
         "photo_detail"),
 
     url(r'^upload/$', 'photo_upload'),
@@ -22,4 +26,8 @@ urlpatterns = patterns(
 
 urlpatterns += patterns(
     'django.views.generic',
+
+    url(r'^albums/(?P<object_id>\d+)/$', 'list_detail.object_detail',
+        dict(album_info, template_name="photos/album_detail.html"),
+        "album_detail"),
 )

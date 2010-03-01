@@ -41,6 +41,10 @@ class Album(models.Model):
     def __unicode__(self):
         return self.name
 
+    @models.permalink
+    def get_absolute_url(self):
+        return ('album_detail', (), {'object_id': self.id})
+
 
 class PhotoTag(models.Model):
     """\

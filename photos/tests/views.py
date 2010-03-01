@@ -21,12 +21,12 @@ class ViewTest(TestCase):
         # Create a Photo object.
         user = User.objects.create_user('adam', 'adam@example.com',
                                         'adampassword')
-        album = Album.objects.create(owner=user, name="Test")
+        self.album = Album.objects.create(owner=user, name="Test")
         photo = Photo()
         photo.owner = user
         image = open(image_path)
         photo.image = ImageFile(image)
-        photo.album = album
+        photo.album = self.album
         photo.is_jpeg = True
         photo.save()
         image.close()
@@ -45,3 +45,12 @@ class ViewTest(TestCase):
 
         response = self.client.get(home_url)
         self.assertEqual(response.status_code, 200)
+
+    def test_album(self):
+        response = self.client.get(self.album.get_absolute_url())
+        self.assertEqual(response.status_code, 200)
+
+        url = reverse('album_detail', args=[0])
+
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 404)

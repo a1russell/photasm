@@ -9,7 +9,7 @@
 		<ul>
 			{% for album in album_list %}
 				<li>
-				<a href="{# {% url album_detail album.id %} #}" />{{ album }}</a>
+					<a href="{% url album_detail album.id %}" />{{ album }}</a>
 				</li>
 			{% endfor %}
 		</ul>

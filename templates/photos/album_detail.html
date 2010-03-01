@@ -1,0 +1,31 @@
+{% extends "photos/base_photos.html" %}
+
+{% block title %}
+	Album
+{% endblock %}
+
+{% block content %}
+	<dl>
+		<dt>Name</dt>
+		<dd>{{ object.name }}</dd>
+		<dt>Owner</dt>
+		<dd>{{ object.owner.username }}</dd>
+	</dl>
+	{% ifequal user.id object.owner.id %}
+		<a href="{% url photasm.photos.views.photo_upload %}">Upload photo</a>
+	{% endifequal %}
+	{% if object.photo_set.count %}
+		<ul>
+			{% for photo in object.photo_set.all %}
+				<li><figure>
+				<dd><a href="{% url photo_detail photo.id %}" /><img src="{{ photo.thumbnail.url }}"
+					alt="{{ photo.description }}" /></a>
+				</dd>
+				<dt><a href="{% url photo_detail photo.id %}" />{{ photo.description }}</a></dt>
+				</figure></li>
+			{% endfor %}
+		</ul>
+	{% else %}
+		<p>The album does not contain any photographs.</p>
+	{% endif %}
+{% endblock %}
