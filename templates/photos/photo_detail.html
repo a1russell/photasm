@@ -70,4 +70,7 @@
 			{% endfor %}
 		{% endif %}
 	</dl>
+	{% ifequal user.id object.owner.id %}
+		<a href="{% url photasm.photos.views.photo_edit object.id %}">Edit attributes</a>
+	{% endifequal %}
 {% endblock %}
