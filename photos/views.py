@@ -2,7 +2,6 @@ from django.contrib.auth.decorators import login_required
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render_to_response
-from django.views.generic import list_detail
 from PIL import Image
 
 from photasm.photos.models import (
@@ -13,14 +12,6 @@ from photasm.photos.models import (
 def home(request):
     album_list = Album.objects.filter(owner__id=request.user.id)
     return render_to_response('photos/home.html', {'album_list': album_list})
-
-
-def photo_list(request, queryset, *args, **kwargs):
-    return list_detail.object_list(request, queryset, *args, **kwargs)
-
-
-def photo_detail(request, queryset, *args, **kwargs):
-    return list_detail.object_detail(request, queryset, *args, **kwargs)
 
 
 @login_required

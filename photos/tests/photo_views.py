@@ -233,7 +233,7 @@ class PhotoDetailTest(TestCase):
         Photo.objects.all().delete()
 
     def test_view(self):
-        photo_detail = 'photasm.photos.views.photo_detail'
+        photo_detail = 'photo_detail'
 
         photo_detail_url = reverse(photo_detail, args=[self.photo.id])
         response = self.client.get(photo_detail_url)
