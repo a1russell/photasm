@@ -1,19 +1,19 @@
 {% extends "photos/base_photos.html" %}
 
 {% block title %}
-	Home
+Home
 {% endblock %}
 
 {% block content %}
-	{% if album_list %}
-		<ul>
-			{% for album in album_list %}
-				<li>
-					<a href="{% url album_detail album.id %}" />{{ album }}</a>
-				</li>
-			{% endfor %}
-		</ul>
-	{% else %}
-		<p>No albums are available.</p>
-	{% endif %}
+{% if album_list %}
+<ul>
+	{% for album in album_list %}
+	<li>
+		<a href="{% url album_detail album.id %}" />{{ album }}</a>
+	</li>
+	{% endfor %}
+</ul>
+{% else %}
+<p>No albums are available.</p>
+{% endif %}
 {% endblock %}

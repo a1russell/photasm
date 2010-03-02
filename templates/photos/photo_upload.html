@@ -1,13 +1,13 @@
 {% extends "photos/base_photos.html" %}
 
 {% block title %}
-	Photo Upload
+Photo Upload
 {% endblock %}
 
 {% block content %}
-	<form enctype="multipart/form-data" method="post"
-		action="{% url photasm.photos.views.photo_upload %}">
-		{{ form.as_p }}
-		<input type="submit" value="Submit" />
-	</form>
+<form enctype="multipart/form-data" method="post"
+	action="{% url photasm.photos.views.photo_upload %}">
+	{{ form.as_p }}
+	<input type="submit" value="Submit" />
+</form>
 {% endblock %}
