@@ -14,10 +14,10 @@ Photo Detail
 {% endif %}
 
 <figure>
-	<dd><img src="{{ object.image.url }}" alt="{{ object.description }}" /></dd>
+	<img src="{{ object.image.url }}" title="{{ object }}" />
 
 	{% if object.description %}
-	<dt>{{ object.description }}</dt>
+	<figcaption>{{ object.description }}</figcaption>
 	{% endif %}
 </figure>
 

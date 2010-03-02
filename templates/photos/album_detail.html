@@ -17,11 +17,10 @@ Album
 {% if object.photo_set.count %}
 <ul>
 	{% for photo in object.photo_set.all %}
-	<li><figure>
+	<li>
 		{% url photo_detail photo.id as photo_detail %}
-		<dd><a href="{{ photo_detail }}"><img src="{{ photo.thumbnail.url }}" alt="{{ photo.description }}" /></a></dd>
-		<dt><a href="{{ photo_detail }}">{{ photo.description }}</a></dt>
-	</figure></li>
+		<a href="{{ photo_detail }}"><img src="{{ photo.thumbnail.url }}" title="{{ photo }}" /></a>
+	</li>
 	{% endfor %}
 </ul>
 {% else %}
