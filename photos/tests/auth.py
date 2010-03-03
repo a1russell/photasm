@@ -68,3 +68,10 @@ class PhotoTest(TestCase):
 
         response = self.client.get(home_url)
         self.assertRedirects(response, login_url)
+
+    def test_create_album(self):
+        home_url = reverse('create_album')
+        login_url = get_login_url(home_url)
+
+        response = self.client.get(home_url)
+        self.assertRedirects(response, login_url)

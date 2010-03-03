@@ -5,6 +5,7 @@ Home
 {% endblock %}
 
 {% block content %}
+<a href="{% url create_album %}">Create an album</a>
 {% if album_list %}
 <ul>
 	{% for album in album_list %}

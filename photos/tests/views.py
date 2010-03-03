@@ -31,6 +31,7 @@ class ViewTest(TestCase):
         photo.save()
         image.close()
         os.remove(image_path)
+        photo.create_thumbnail()
 
         self.client.login(username='adam', password='adampassword')
 
@@ -54,3 +55,31 @@ class ViewTest(TestCase):
 
         response = self.client.get(url)
         self.assertEqual(response.status_code, 404)
+
+
+class CreateAlbumTest(TestCase):
+
+    def setUp(self):
+        self.user = User.objects.create_user('adam', 'adam@example.com',
+                                             'adampassword')
+        self.client.login(username='adam', password='adampassword')
+
+    def tearDown(self):
+        self.client.logout()
+        Album.objects.all().delete()
+
+    def runTest(self):
+        url = reverse('create_album')
+
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+
+        response = self.client.post(url, {})
+        self.assertEqual(response.status_code, 200)
+
+        response = self.client.post(url, {'name': 'Test'})
+        albums = Album.objects.order_by('-id')
+        self.assertTrue(len(albums))
+        album = albums[0]
+        self.assertRedirects(response, album.get_absolute_url())
+        self.assertEqual(album.owner, self.user)

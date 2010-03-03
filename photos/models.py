@@ -3,12 +3,12 @@ import os
 from StringIO import StringIO
 import tempfile
 
+from django import forms
 from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.files.images import ImageFile
 from django.core.files.storage import default_storage
 from django.db import models
-from django.forms import ModelForm
 from PIL import Image
 import pyexiv2
 
@@ -516,7 +516,7 @@ class Photo(models.Model):
         return mod_instance
 
 
-class PhotoUploadForm(ModelForm):
+class PhotoUploadForm(forms.ModelForm):
     """\
     Form presented to the user for uploading a Photo.
 
@@ -531,7 +531,7 @@ class PhotoUploadForm(ModelForm):
         fields = ('album', 'image',)
 
 
-class PhotoEditForm(ModelForm):
+class PhotoEditForm(forms.ModelForm):
     """\
     Form presented to the user for editing a Photo.
 
@@ -546,3 +546,33 @@ class PhotoEditForm(ModelForm):
     class Meta:
         model = Photo
         exclude = ('owner', 'image', 'metadata_sync_enabled',)
+
+
+class AlbumCreationForm(forms.ModelForm):
+    """\
+    Form presented to the user for creating an Album.
+
+    """
+
+    class Meta:
+        model = Album
+        exclude = ('owner',)
+
+    def __init__(self, *args, **kwargs):
+        super(AlbumCreationForm, self).__init__(*args, **kwargs)
+
+        if 'instance' in kwargs:
+            instance = kwargs['instance']
+            # Set form fields based on model object, e.g.:
+            # self.initial['some_field'] = instance.some_field
+
+    def save(self, commit=True):
+        model = super(AlbumCreationForm, self).save(commit=False)
+
+        # Save the model fields based on the form fields, e.g.:
+        # model.some_field = self.cleaned_data['some_field']
+
+        if commit:
+            model.save()
+
+        return model

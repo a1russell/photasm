@@ -5,7 +5,7 @@ from django.shortcuts import get_object_or_404, render_to_response
 from PIL import Image
 
 from photasm.photos.models import (
-    Album, Photo, PhotoEditForm, PhotoUploadForm)
+    Album, Photo, PhotoEditForm, PhotoUploadForm, AlbumCreationForm)
 
 
 @login_required
@@ -89,5 +89,33 @@ def photo_edit(request, object_id):
         form = PhotoEditForm(instance=object)
 
     return render_to_response('photos/photo_edit.html', {
+        'form': form,
+    })
+
+
+@login_required
+def create_album(request):
+    """\
+    Creates an album.
+
+    """
+    if request.method == 'POST':
+        form = AlbumCreationForm(request.POST, request.FILES)
+
+        if form.is_valid():
+            new_album = form.save(commit=False)
+            new_album.owner = request.user
+
+            new_album.save()
+            form.save_m2m()
+
+            request.user.message_set.create(
+                message="Your album was created successfully.")
+            return HttpResponseRedirect(reverse("album_detail",
+                                                args=[form.instance.id]))
+    else:
+        form = AlbumCreationForm()
+
+    return render_to_response('photos/album_creation.html', {
         'form': form,
     })

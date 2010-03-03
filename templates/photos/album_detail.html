@@ -5,6 +5,14 @@ Album
 {% endblock %}
 
 {% block content %}
+{% if messages %}
+<ul>
+	{% for message in messages %}
+	<li>{{ message }}</li>
+	{% endfor %}
+</ul>
+{% endif %}
+
 <dl>
 	<dt>Name</dt>
 	<dd>{{ object.name }}</dd>

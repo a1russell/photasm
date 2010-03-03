@@ -18,6 +18,8 @@ urlpatterns = patterns(
     url(r'^upload/$', 'photo_upload'),
 
     url(r'^(?P<object_id>\d+)/edit/$', 'photo_edit'),
+
+    url(r'^albums/new/$', 'create_album', name='create_album'),
 )
 
 urlpatterns += patterns(

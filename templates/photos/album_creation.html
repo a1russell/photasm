@@ -1,0 +1,13 @@
+{% extends "photos/base_photos.html" %}
+
+{% block title %}
+Album Creation
+{% endblock %}
+
+{% block content %}
+<form enctype="multipart/form-data" method="post"
+	action="{% url create_album %}">
+	{{ form.as_p }}
+	<input type="submit" value="Submit" />
+</form>
+{% endblock %}
