@@ -2,19 +2,27 @@
 
 {% block title %}
 Home
+- PhotAsm
 {% endblock %}
 
 {% block content %}
-<a href="{% url create_album %}">Create an album</a>
-{% if album_list %}
-<ul>
-	{% for album in album_list %}
-	<li>
-		<a href="{% url album_detail album.id %}" />{{ album }}</a>
-	</li>
-	{% endfor %}
-</ul>
-{% else %}
-<p>No albums are available.</p>
-{% endif %}
+<section>
+	<h1>Home</h1>
+	<section>
+		<h1>Your Albums</h1>
+		{% if album_list %}
+		<a href="{% url create_album %}">Create an album.</a>
+		<ul>
+			{% for album in album_list %}
+			<li>
+				<a href="{% url album_detail album.id %}">{{ album }}</a>
+			</li>
+			{% endfor %}
+		</ul>
+		{% else %}
+		<p>No albums have yet been created.
+		<a href="{% url create_album %}">Create an album now.</a></p>
+		{% endif %}
+	</section>
+</section>
 {% endblock %}

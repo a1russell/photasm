@@ -45,6 +45,18 @@ class Album(models.Model):
     def get_absolute_url(self):
         return ('album_detail', (), {'object_id': self.id})
 
+    @property
+    def name_with_owner(self):
+        name_with_owner = self.owner.username
+        if self.owner.first_name:
+            name_with_owner = self.owner.first_name
+        if name_with_owner.endswith('s'):
+            name_with_owner += "'"
+        else:
+            name_with_owner += "'s"
+        name_with_owner += " %s" % self.name
+        return name_with_owner
+
 
 class PhotoTag(models.Model):
     """\
@@ -203,9 +215,7 @@ class Photo(models.Model):
     album = models.ForeignKey(Album)
 
     def __unicode__(self):
-        repr = "%s's photo #%d" % (self.owner.username, self.id)
-        if len(self.description) > 0:
-            repr = self.description
+        repr = "photo #%d" % (self.id,)
         return repr
 
     def save(self, *args, **kwargs):

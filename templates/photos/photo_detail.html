@@ -1,7 +1,8 @@
 {% extends "photos/base_photos.html" %}
 
 {% block title %}
-Photo Detail
+{{ object|title }}
+- PhotAsm
 {% endblock %}
 
 {% block content %}
@@ -13,62 +14,70 @@ Photo Detail
 </ul>
 {% endif %}
 
-<figure>
-	<img src="{{ object.image.url }}" title="{{ object }}" />
+<section>
+	{% block photo_detail_heading %}
+	<hgroup>
+		<h1>{{ object|title }}</h1>
+		<h2>From {{ object.album.name_with_owner|title }} Album</h1>
+	</hgroup>
+	{% endblock %}
+	<figure>
+		<img src="{{ object.image.url }}" title="{{ object }}" />
 
-	{% if object.description %}
-	<figcaption>{{ object.description }}</figcaption>
-	{% endif %}
-</figure>
+		{% if object.description %}
+		<figcaption>{{ object.description }}</figcaption>
+		{% endif %}
+	</figure>
 
-<dl>
-	<dt>Owner</dt>
-	<dd>{{ object.owner.username|title }}</dd>
+	<dl>
+		<dt>Owner</dt>
+		<dd>{{ object.owner.username|title }}</dd>
 
-	<dt>Width</dt>
-	<dd>{{ object.image_width }}</dd>
+		<dt>Width</dt>
+		<dd>{{ object.image_width }}</dd>
 
-	<dt>Height</dt>
-	<dd>{{ object.image_height }}</dd>
+		<dt>Height</dt>
+		<dd>{{ object.image_height }}</dd>
 
-	{% if object.artist %}
-	<dt>Artist</dt>
-	<dd>{{ object.artist }}</dd>
-	{% endif %}
+		{% if object.artist %}
+		<dt>Artist</dt>
+		<dd>{{ object.artist }}</dd>
+		{% endif %}
 
-	{% if object.country %}
-	<dt>Country</dt>
-	<dd>{{ object.country }}</dd>
-	{% endif %}
+		{% if object.country %}
+		<dt>Country</dt>
+		<dd>{{ object.country }}</dd>
+		{% endif %}
 
-	{% if object.province_state %}
-	<dt>Province/State</dt>
-	<dd>{{ object.province_state }}</dd>
-	{% endif %}
+		{% if object.province_state %}
+		<dt>Province/State</dt>
+		<dd>{{ object.province_state }}</dd>
+		{% endif %}
 
-	{% if object.city %}
-	<dt>City</dt>
-	<dd>{{ object.city }}</dd>
-	{% endif %}
+		{% if object.city %}
+		<dt>City</dt>
+		<dd>{{ object.city }}</dd>
+		{% endif %}
 
-	{% if object.location %}
-	<dt>Location</dt>
-	<dd>{{ object.location }}</dd>
-	{% endif %}
+		{% if object.location %}
+		<dt>Location</dt>
+		<dd>{{ object.location }}</dd>
+		{% endif %}
 
-	{% if object.date_created %}
-	<dt>Date Taken</dt>
-	<dd>{{ object.date_created }}</dd>
-	{% endif %}
+		{% if object.date_created %}
+		<dt>Date Taken</dt>
+		<dd>{{ object.date_created }}</dd>
+		{% endif %}
 
-	{% if object.keywords.count %}
-	<dt>Keywords</dt>
-	{% for keyword in object.keywords.all %}
-	<dd>{{ keyword.name }}</dd>
-	{% endfor %}
-	{% endif %}
-</dl>
-{% ifequal user.id object.owner.id %}
-<a href="{% url photasm.photos.views.photo_edit object.id %}">Edit attributes</a>
-{% endifequal %}
+		{% if object.keywords.count %}
+		<dt>Keywords</dt>
+		{% for keyword in object.keywords.all %}
+		<dd>{{ keyword.name }}</dd>
+		{% endfor %}
+		{% endif %}
+	</dl>
+	{% ifequal user.id object.owner.id %}
+	<a href="{% url photasm.photos.views.photo_edit object.id %}">Edit attributes.</a>
+	{% endifequal %}
+</section>
 {% endblock %}

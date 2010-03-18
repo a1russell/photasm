@@ -1,13 +1,17 @@
 {% extends "photos/base_photos.html" %}
 
 {% block title %}
-Album Creation
+Create an Album
+- PhotAsm
 {% endblock %}
 
 {% block content %}
-<form enctype="multipart/form-data" method="post"
-	action="{% url create_album %}">
-	{{ form.as_p }}
-	<input type="submit" value="Submit" />
-</form>
+<section>
+	<h1>Create an Album</h1>
+	<form enctype="multipart/form-data" method="post"
+		action="{% url create_album %}">
+		{{ form.as_p }}
+		<input type="submit" value="Submit" />
+	</form>
+</section>
 {% endblock %}

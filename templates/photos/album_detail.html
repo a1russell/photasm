@@ -1,7 +1,8 @@
 {% extends "photos/base_photos.html" %}
 
 {% block title %}
-Album
+{{ object.name_with_owner|title }} Album
+- PhotAsm
 {% endblock %}
 
 {% block content %}
@@ -13,25 +14,24 @@ Album
 </ul>
 {% endif %}
 
-<dl>
-	<dt>Name</dt>
-	<dd>{{ object.name }}</dd>
-	<dt>Owner</dt>
-	<dd>{{ object.owner.username }}</dd>
-</dl>
-{% ifequal user.id object.owner.id %}
-<a href="{% url photasm.photos.views.photo_upload %}">Upload photo</a>
-{% endifequal %}
-{% if object.photo_set.count %}
-<ul>
-	{% for photo in object.photo_set.all %}
-	<li>
-		{% url photo_detail photo.id as photo_detail %}
-		<a href="{{ photo_detail }}"><img src="{{ photo.thumbnail.url }}" title="{{ photo }}" /></a>
-	</li>
-	{% endfor %}
-</ul>
-{% else %}
-<p>The album does not contain any photographs.</p>
-{% endif %}
+<section>
+	<h1>{{ object.name_with_owner|title }} Album</h1>
+	{% url photasm.photos.views.photo_upload as photo_upload %}
+	{% ifequal user.id object.owner.id %}
+	<a href="{{ photo_upload }}">Upload a photograph.</a>
+	{% endifequal %}
+	{% if object.photo_set.count %}
+	<ul>
+		{% for photo in object.photo_set.all %}
+		<li>
+			{% url photo_detail photo.id as photo_detail %}
+			<a href="{{ photo_detail }}"><img src="{{ photo.thumbnail.url }}" title="{{ photo }}" /></a>
+		</li>
+		{% endfor %}
+	</ul>
+	{% else %}
+	<p>The album does not contain any photographs.
+	<a href="{{ photo_upload }}">Upload a photograph now.</a></p>
+	{% endif %}
+</section>
 {% endblock %}
