@@ -44,14 +44,21 @@ class AddPhotoTest(TestCase):
         Photo.objects.all().delete()
 
     def test_form(self):
-        photo_upload_url = reverse('photasm.photos.views.photo_upload')
+        photo_upload = 'photasm.photos.views.photo_upload'
+
+        bad_photo_upload_url = reverse(photo_upload,
+                                       kwargs={'album_id': 0})
+        response = self.client.get(bad_photo_upload_url)
+        self.assertEqual(response.status_code, 404)
+
+        photo_upload_url = reverse(photo_upload,
+                                   kwargs={'album_id': self.album.id})
 
         response = self.client.get(photo_upload_url)
         self.assertEqual(response.status_code, 200)
 
         image = open(self.image_path)
-        response = self.client.post(photo_upload_url, {
-            'album': self.album.id, 'image': image})
+        response = self.client.post(photo_upload_url, {'image': image})
         image.close()
         photos = Photo.objects.order_by('-id')
         self.assertTrue(len(photos))
@@ -68,6 +75,12 @@ class AddPhotoTest(TestCase):
         response = self.client.post(photo_upload_url, {})
         # Get page back with error message
         self.assertEqual(response.status_code, 200)
+
+        # POST to bad URL
+        image = open(self.image_path)
+        response = self.client.post(bad_photo_upload_url, {'image': image})
+        image.close()
+        self.assertEqual(response.status_code, 404)
 
     def test_admin_form(self):
         photo_upload_url = '/admin/photos/photo/add/'

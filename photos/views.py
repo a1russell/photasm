@@ -15,7 +15,7 @@ def home(request):
 
 
 @login_required
-def photo_upload(request):
+def photo_upload(request, album_id):
     """\
     Uploads a Photo.
 
@@ -27,6 +27,8 @@ def photo_upload(request):
     informing the user of previous values.
 
     """
+    album = get_object_or_404(Album, pk=album_id)
+
     if request.method == 'POST':
         form = PhotoUploadForm(request.POST, request.FILES)
 
@@ -35,6 +37,7 @@ def photo_upload(request):
 
             new_photo = form.save(commit=False)
             new_photo.owner = request.user
+            new_photo.album = album
 
             photo.open()
             image = Image.open(photo)
@@ -56,6 +59,7 @@ def photo_upload(request):
 
     return render_to_response('photos/photo_upload.html', {
         'form': form,
+        'album_id': album_id,
     })
 
 

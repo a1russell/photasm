@@ -15,7 +15,7 @@ urlpatterns = patterns(
 
     url(r'^$', 'home', name='home'),
 
-    url(r'^upload/$', 'photo_upload'),
+    url(r'^upload/albums/(?P<album_id>\d+)/$', 'photo_upload'),
 
     url(r'^(?P<object_id>\d+)/edit/$', 'photo_edit'),
 

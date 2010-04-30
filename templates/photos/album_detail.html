@@ -16,7 +16,7 @@
 
 <section>
 	<h1>{{ object.name_with_owner|title }} Album</h1>
-	{% url photasm.photos.views.photo_upload as photo_upload %}
+	{% url photasm.photos.views.photo_upload object.id as photo_upload %}
 	{% ifequal user.id object.owner.id %}
 	<a href="{{ photo_upload }}">Upload a photograph.</a>
 	{% endifequal %}

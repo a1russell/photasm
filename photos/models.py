@@ -538,7 +538,7 @@ class PhotoUploadForm(forms.ModelForm):
 
     class Meta:
         model = Photo
-        fields = ('album', 'image',)
+        fields = ('image',)
 
 
 class PhotoEditForm(forms.ModelForm):

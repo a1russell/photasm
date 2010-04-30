@@ -21,7 +21,11 @@ def get_login_url(original_url):
 class PhotoUploadTest(TestCase):
 
     def runTest(self):
-        photo_upload_url = reverse('photasm.photos.views.photo_upload')
+        user = User.objects.create(username="Adam")
+        album = Album.objects.create(owner=user, name="Test")
+
+        photo_upload_url = reverse('photasm.photos.views.photo_upload',
+                                   kwargs={'album_id': album.id})
         login_url = get_login_url(photo_upload_url)
 
         response = self.client.get(photo_upload_url)
