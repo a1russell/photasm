@@ -41,10 +41,8 @@ def photo_upload(request, album_id):
     informing the user of previous values.
 
     """
-    # TODO: We only need a count on GET.
-    album = get_object_or_404(Album, pk=album_id)
-
     if request.method == 'POST':
+        album = get_object_or_404(Album, pk=album_id)
         form = PhotoUploadForm(request.POST, request.FILES)
 
         if form.is_valid():
@@ -71,6 +69,9 @@ def photo_upload(request, album_id):
                 "object_id": form.instance.id,
             }))
     else:
+        album_count = Album.objects.filter(pk=album_id).count()
+        if not album_count > 0:
+            raise Http404
         form = PhotoUploadForm()
 
     return render_to_response('photos/photo_upload.html', {
