@@ -22,7 +22,7 @@ urlpatterns = patterns(
 
     (r'^admin/', include(admin.site.urls)),
 
-    (r'^photos/', include('photasm.photos.urls')),
+    (r'^', include('photasm.photos.urls')),
 )
 
 if settings.DEBUG:
