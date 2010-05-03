@@ -118,9 +118,8 @@ def photo_edit(request, object_id, **kwargs):
     })
 
 
-# TODO: Change name to new_album.
 @login_required
-def create_album(request):
+def new_album(request):
     """\
     Creates an album.
 
@@ -142,6 +141,6 @@ def create_album(request):
     else:
         form = AlbumCreationForm()
 
-    return render_to_response('photos/album_creation.html', {
+    return render_to_response('photos/new_album.html', {
         'form': form,
     })

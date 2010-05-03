@@ -11,7 +11,7 @@ Home
 	<section>
 		<h1>Your Albums</h1>
 		{% if album_list %}
-		<a href="{% url create_album %}">Create an album.</a>
+		<a href="{% url new_album %}">Create an album.</a>
 		<ul>
 			{% for album in album_list %}
 			<li>
@@ -21,7 +21,7 @@ Home
 		</ul>
 		{% else %}
 		<p>No albums have yet been created.
-		<a href="{% url create_album %}">Create an album now.</a></p>
+		<a href="{% url new_album %}">Create an album now.</a></p>
 		{% endif %}
 	</section>
 </section>

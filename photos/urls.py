@@ -26,7 +26,7 @@ urlpatterns = patterns(
     url(r'^(?P<object_id>\d+)/edit/(?P<in_album>albums)/$',
         'photo_edit', name='photo_edit_in_album'),
 
-    url(r'^albums/new/$', 'create_album', name='create_album'),
+    url(r'^albums/new/$', 'new_album', name='new_album'),
 )
 
 urlpatterns += patterns(

@@ -69,7 +69,7 @@ class CreateAlbumTest(TestCase):
         Album.objects.all().delete()
 
     def runTest(self):
-        url = reverse('create_album')
+        url = reverse('new_album')
 
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
