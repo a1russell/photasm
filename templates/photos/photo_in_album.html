@@ -1,0 +1,13 @@
+{% extends "photos/photo_detail.html" %}
+
+{% block photo_detail_heading %}
+<hgroup>
+	<h1>{{ object|title }}</h1>
+	<h2>{{ photo_index }} of {{ photo_count }} in {{ object.album.name_with_owner|title }} Album</h1>
+</hgroup>
+{% endblock %}
+
+{% block photo_edit_link %}
+{% url photo_edit_in_album object_id=object.id,in_album='albums' as photo_edit %}
+<a href="{{ photo_edit }}">Edit attributes.</a>
+{% endblock %}

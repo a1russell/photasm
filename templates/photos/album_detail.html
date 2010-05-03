@@ -24,7 +24,7 @@
 	<ul>
 		{% for photo in object.photo_set.all %}
 		<li>
-			{% url photo_detail photo.id as photo_detail %}
+			{% url photo_in_album photo.id as photo_detail %}
 			<a href="{{ photo_detail }}"><img src="{{ photo.thumbnail.url }}" title="{{ photo }}" /></a>
 		</li>
 		{% endfor %}

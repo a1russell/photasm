@@ -63,7 +63,10 @@ class AddPhotoTest(TestCase):
         photos = Photo.objects.order_by('-id')
         self.assertTrue(len(photos))
         photo = photos[0]
-        self.assertRedirects(response, photo.get_absolute_url())
+        photo_url = reverse("photo_in_album", kwargs={
+            "object_id": photo.id,
+        })
+        self.assertRedirects(response, photo_url)
         # Photo has already been synced
         self.assertFalse(photo.sync_metadata_from_file())
         self.assertEqual(photo.description, 'test image')
@@ -184,6 +187,20 @@ class EditPhotoTest(TestCase):
         response = self.client.post(photo_edit_url, {})
         self.assertEqual(response.status_code, 200)
 
+        photo_edit = 'photo_edit_in_album'
+
+        photo_edit_url = reverse(photo_edit, kwargs={
+            'object_id': self.photo.id,
+            'in_album': 'albums',
+        })
+        post_data['description'] = 'test image in album'
+        response = self.client.post(photo_edit_url, post_data)
+        self.photo = Photo.objects.get(id=self.photo.id)
+        photo_url = reverse("photo_in_album", kwargs={
+            "object_id": self.photo.id,
+        })
+        self.assertRedirects(response, photo_url)
+
     def test_admin_form(self):
         photo_edit_url = '/admin/photos/photo/%d/' % self.photo.id
 
@@ -250,4 +267,13 @@ class PhotoDetailTest(TestCase):
 
         photo_detail_url = reverse(photo_detail, args=[self.photo.id])
         response = self.client.get(photo_detail_url)
+        self.assertEqual(response.status_code, 200)
+
+    def test_photo_in_album(self):
+        view = 'photo_in_album'
+
+        view_url = reverse(view, kwargs={
+            'object_id': self.photo.id,
+        })
+        response = self.client.get(view_url)
         self.assertEqual(response.status_code, 200)

@@ -1,7 +1,8 @@
 from django.contrib.auth.decorators import login_required
 from django.core.urlresolvers import reverse
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, Http404
 from django.shortcuts import get_object_or_404, render_to_response
+from django.template import RequestContext
 from PIL import Image
 
 from photasm.photos.models import (
@@ -12,6 +13,19 @@ from photasm.photos.models import (
 def home(request):
     album_list = Album.objects.filter(owner__id=request.user.id)
     return render_to_response('photos/home.html', {'album_list': album_list})
+
+
+def photo_in_album(request, object_id):
+    photo = get_object_or_404(Photo, pk=object_id)
+    photos_in_album = Photo.objects.filter(album__id=photo.album.id)\
+                           .order_by('id').values_list('id', flat=True)
+    photo_count = len(photos_in_album)
+    photo_index = list(photos_in_album).index(int(object_id)) + 1
+    return render_to_response('photos/photo_in_album.html', {
+        'object': photo,
+        'photo_index': photo_index,
+        'photo_count': photo_count,
+    }, context_instance=RequestContext(request))
 
 
 @login_required
@@ -27,6 +41,7 @@ def photo_upload(request, album_id):
     informing the user of previous values.
 
     """
+    # TODO: We only need a count on GET.
     album = get_object_or_404(Album, pk=album_id)
 
     if request.method == 'POST':
@@ -52,8 +67,9 @@ def photo_upload(request, album_id):
 
             request.user.message_set.create(
                 message="Your photograph was added successfully.")
-            return HttpResponseRedirect(reverse("photo_detail",
-                                                args=[form.instance.id]))
+            return HttpResponseRedirect(reverse("photo_in_album", kwargs={
+                "object_id": form.instance.id,
+            }))
     else:
         form = PhotoUploadForm()
 
@@ -64,7 +80,7 @@ def photo_upload(request, album_id):
 
 
 @login_required
-def photo_edit(request, object_id):
+def photo_edit(request, object_id, **kwargs):
     """\
     Edits a Photo.
 
@@ -85,8 +101,12 @@ def photo_edit(request, object_id):
             object.sync_metadata_to_file()
             request.user.message_set.create(
                 message="Your photograph was successfully updated.")
-            return HttpResponseRedirect(reverse("photo_detail",
-                                                args=[object_id]))
+            url = reverse("photo_detail", args=[object_id])
+            if "in_album" in kwargs:
+                url = reverse("photo_in_album", kwargs={
+                    "object_id": object_id,
+                })
+            return HttpResponseRedirect(url)
 
     else:
         object = get_object_or_404(Photo, pk=object_id)
@@ -97,6 +117,7 @@ def photo_edit(request, object_id):
     })
 
 
+# TODO: Change name to new_album.
 @login_required
 def create_album(request):
     """\

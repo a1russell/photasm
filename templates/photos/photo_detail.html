@@ -16,10 +16,7 @@
 
 <section>
 	{% block photo_detail_heading %}
-	<hgroup>
-		<h1>{{ object|title }}</h1>
-		<h2>From {{ object.album.name_with_owner|title }} Album</h1>
-	</hgroup>
+	<h1>{{ object|title }}</h1>
 	{% endblock %}
 	<figure>
 		<img src="{{ object.image.url }}" title="{{ object }}" />
@@ -77,7 +74,9 @@
 		{% endif %}
 	</dl>
 	{% ifequal user.id object.owner.id %}
+	{% block photo_edit_link %}
 	<a href="{% url photasm.photos.views.photo_edit object.id %}">Edit attributes.</a>
+	{% endblock %}
 	{% endifequal %}
 </section>
 {% endblock %}
