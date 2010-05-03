@@ -252,7 +252,7 @@ class PhotoDetailTest(TestCase):
         self.photo.time_created = datetime.datetime(2007, 9, 28, 3, 0)
         self.photo.save()
         os.remove(image_path)
-        self.photo.set_keywords(['test', 'photo'])
+        self.photo.keyword_list = ['test', 'photo']
         self.photo.save()
 
     def tearDown(self):

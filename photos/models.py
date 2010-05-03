@@ -237,30 +237,29 @@ class Photo(models.Model):
     def get_absolute_url(self):
         return ('photo_detail', (), {'object_id': self.id})
 
-    def get_keywords(self):
+    @property
+    def keyword_list(self):
         """\
         Returns the photograph keywords as a list of strings.
 
         """
-        keywords = []
-        for keyword in self.keywords.all():
-            keywords.append(keyword.name)
-        return keywords
+        return [keyword.name for keyword in self.keywords.all()]
 
-    def set_keywords(self, keywords):
+    @keyword_list.setter
+    def keyword_list(self, keyword_list):
         """\
         Sets the keywords from a list of strings.
 
         Parameters:
-        keywords -- the list of keywords to set
+        keyword_list -- the list of keywords to set
 
         """
         self.keywords.clear()
 
-        if not keywords:
+        if not keyword_list:
             return
 
-        for keyword in keywords:
+        for keyword in keyword_list:
             try:
                 photo_tag = PhotoTag.objects.get(name__iexact=keyword)
             except ObjectDoesNotExist:
@@ -385,7 +384,7 @@ class Photo(models.Model):
             or mod
 
         # sync keywords
-        mod = sync_value_to_iptc(self.get_keywords(), image_metadata,
+        mod = sync_value_to_iptc(self.keyword_list, image_metadata,
                                  'Iptc.Application2.Keywords') or mod
 
         # sync image_width
@@ -513,12 +512,12 @@ class Photo(models.Model):
                 'Iptc.Application2.TimeCreated')
 
         # sync keywords
-        mod_attr = not value_synced_with_iptc(self.get_keywords(),
+        mod_attr = not value_synced_with_iptc(self.keyword_list,
             image_metadata, 'Iptc.Application2.Keywords')
         mod_instance = mod_attr or mod_instance
         if ('Iptc.Application2.Keywords' in image_metadata.iptcKeys() and
             mod_attr):
-            self.set_keywords(image_metadata['Iptc.Application2.Keywords'])
+            self.keyword_list = image_metadata['Iptc.Application2.Keywords']
 
         if mod_instance and commit:
             self.save()

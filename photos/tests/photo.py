@@ -41,13 +41,13 @@ class KeywordsTest(TestCase):
         image.close()
 
         # Photo has empty list of keywords.
-        self.assertEqual(photo.get_keywords(), [])
+        self.assertEqual(photo.keyword_list, [])
 
         # Add some keywords.
         photo.keywords.add(test_kw)
         photo.keywords.add(photo_kw)
         photo.save()
-        self.assertEqual(photo.get_keywords(), [u'test', u'photo'])
+        self.assertEqual(photo.keyword_list, [u'test', u'photo'])
 
     def test_set(self):
         # Create a Photo object.
@@ -66,23 +66,23 @@ class KeywordsTest(TestCase):
         self.assertEqual(PhotoTag.objects.count(), 1)
 
         # Set the photo's keywords.
-        photo.set_keywords(['Test', 'photo'])
+        photo.keyword_list = ['Test', 'photo']
         photo.save()
-        self.assertEqual(photo.get_keywords(), [u'test', u'photo'])
+        self.assertEqual(photo.keyword_list, [u'test', u'photo'])
         self.assertEqual(test_kw.photo_set.count(), 1)
         self.assertEqual(PhotoTag.objects.count(), 2)
 
         # Set the photo's keywords to something completely different.
-        photo.set_keywords(['foo', 'bar'])
+        photo.keyword_list = ['foo', 'bar']
         photo.save()
-        self.assertEqual(photo.get_keywords(), [u'foo', u'bar'])
+        self.assertEqual(photo.keyword_list, [u'foo', u'bar'])
         self.assertEqual(test_kw.photo_set.count(), 0)
         self.assertEqual(PhotoTag.objects.count(), 4)
 
         # Set the photo's keywords to an empty list.
-        photo.set_keywords([])
+        photo.keyword_list = []
         photo.save()
-        self.assertEqual(photo.get_keywords(), [])
+        self.assertEqual(photo.keyword_list, [])
 
 
 class CreateThumbnailTest(TestCase):
@@ -225,7 +225,7 @@ class SyncMetadataToFileTest(TestCase):
         photo.save()
         image.close()
         os.remove(file_path)
-        photo.set_keywords(['test', 'photo'])
+        photo.keyword_list = ['test', 'photo']
         photo.save()
 
         # Synchronize.
@@ -393,7 +393,7 @@ class SyncMetadataFromFileTest(TestCase):
         self.assertEqual(photo.city, 'Blacksburg')
         self.assertEqual(photo.location, 'Dreamland')
         self.assertEqual(str(photo.time_created), '2007-09-28 03:00:00')
-        self.assertEqual(photo.get_keywords(), [u'test', u'photo'])
+        self.assertEqual(photo.keyword_list, [u'test', u'photo'])
 
         # Attempt to synchronize again...
         self.assertFalse(photo.sync_metadata_from_file())
@@ -405,7 +405,7 @@ class SyncMetadataFromFileTest(TestCase):
         self.assertEqual(photo.city, 'Blacksburg')
         self.assertEqual(photo.location, 'Dreamland')
         self.assertEqual(str(photo.time_created), '2007-09-28 03:00:00')
-        self.assertEqual(photo.get_keywords(), [u'test', u'photo'])
+        self.assertEqual(photo.keyword_list, [u'test', u'photo'])
 
         # Synchronize only one field.
         metadata = pyexiv2.Image(photo.image.path)
